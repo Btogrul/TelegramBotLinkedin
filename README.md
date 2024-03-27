@@ -1,4 +1,4 @@
-## Welcome to CareerCompanion bot
+# Welcome to CareerCompanion bot
 This bot helps you find jobs fitting to your skill set.
 
 ### Wireframe design
