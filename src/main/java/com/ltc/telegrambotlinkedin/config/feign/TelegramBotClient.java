@@ -8,4 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 public interface TelegramBotClient {
 
     @GetMapping("/getUpdates")
-    BotRequestDTO getUpdates ();}
+    BotRequestDTO getUpdates ();
+
+}
