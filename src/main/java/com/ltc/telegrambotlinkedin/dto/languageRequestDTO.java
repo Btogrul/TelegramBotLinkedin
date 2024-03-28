@@ -1,5 +1,8 @@
 package com.ltc.telegrambotlinkedin.dto;
 
-public class languageRequest {
+import lombok.Data;
+
+@Data
+public class languageRequestDTO {
 
 }
