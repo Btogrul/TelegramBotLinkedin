@@ -7,7 +7,8 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString
-public class jobTitleResponseDTO {
-    Long Id;
-    String jobTitle;
+public class MessageResponseRoot {
+    public String result;
+    public boolean status;
+    public int server_code;
 }
