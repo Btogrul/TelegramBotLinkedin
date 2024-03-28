@@ -6,15 +6,11 @@ import io.swagger.v3.oas.annotations.info.Info;
 
 @OpenAPIDefinition(
         info = @Info(
-                contact = @Contact(
-                        name = "Product Management"
-                ),
+                contact = @Contact(name = "Product Management"),
                 description = "OpenApi documentation for Frontend",
                 title = "Product Project Api",
                 version = "1.0",
                 termsOfService = "Terms of service"
         )
-
 )
-public class SwaggerConfig {
-}
+public class SwaggerConfig {}
