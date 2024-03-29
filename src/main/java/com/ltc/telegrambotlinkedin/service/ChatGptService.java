@@ -1,4 +1,4 @@
-package com.ltc.telegrambotlinkedin.service.telegramService;
+package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.ChatGPTClient;
 import lombok.RequiredArgsConstructor;
