@@ -1,6 +1,6 @@
 package com.ltc.telegrambotlinkedin.config.feign;
 
-import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotRequestDTO;
+import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Root;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -8,6 +8,5 @@ import org.springframework.web.bind.annotation.GetMapping;
 public interface TelegramBotClient {
 
     @GetMapping("/getUpdates")
-    BotRequestDTO getUpdates ();
-
+    Root getUpdates ();
 }
