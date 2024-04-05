@@ -1,4 +1,4 @@
-package com.ltc.telegrambotlinkedin.dto;
+package com.ltc.telegrambotlinkedin.dto.others;
 
 import lombok.Data;
 
