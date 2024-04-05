@@ -1,8 +1,8 @@
 package com.ltc.telegrambotlinkedin.controller;
 
 import com.ltc.telegrambotlinkedin.config.feign.ChatGPTClient;
-import com.ltc.telegrambotlinkedin.dto.MessageResponseRoot;
-import com.ltc.telegrambotlinkedin.dto.MessageRoot;
+import com.ltc.telegrambotlinkedin.dto.others.MessageResponseRoot;
+import com.ltc.telegrambotlinkedin.dto.others.MessageRoot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
