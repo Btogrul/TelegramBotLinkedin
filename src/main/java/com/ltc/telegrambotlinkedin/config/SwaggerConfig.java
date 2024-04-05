@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.info.Info;
         info = @Info(
                 contact = @Contact(name = "Product Management"),
                 description = "OpenApi documentation for Frontend",
-                title = "Product Project Api",
+                title = "CareerCompanion Bot",
                 version = "1.0",
                 termsOfService = "Terms of service"
         )
