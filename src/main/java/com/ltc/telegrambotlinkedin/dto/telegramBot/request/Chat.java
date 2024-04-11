@@ -1,17 +1,19 @@
 package com.ltc.telegrambotlinkedin.dto.telegramBot.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-// import com.fasterxml.jackson.databind.ObjectMapper; // version 2.11.1
-// import com.fasterxml.jackson.annotation.JsonProperty; // version 2.11.1
-/* ObjectMapper om = new ObjectMapper();
-Root root = om.readValue(myJsonString, Root.class); */
 @Data
 public class Chat{
-    private int id;
-    private String first_name;
-    private String last_name;
+    @JsonProperty("id")
+    private int chatId;
+    @JsonProperty("first_name")
+    private String firstName;
+    @JsonProperty("last_name")
+    private String lastName;
+    @JsonProperty("username")
     private String username;
+    @JsonProperty("type")
     private String type;
 }
 
