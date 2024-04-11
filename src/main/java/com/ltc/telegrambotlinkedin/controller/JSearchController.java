@@ -1,7 +1,6 @@
 package com.ltc.telegrambotlinkedin.controller;
 
 import com.ltc.telegrambotlinkedin.config.feign.JSearchClient;
-import com.ltc.telegrambotlinkedin.dto.MessageRoot;
 import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
 import com.ltc.telegrambotlinkedin.dto.jSearchDto.Parameters;
 import lombok.RequiredArgsConstructor;
