@@ -3,6 +3,7 @@ package com.ltc.telegrambotlinkedin.service;
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
 import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotRequestDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Result;
+import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ public class TelegramBotService {
         return msgs;
     }
 
-    public BotRequestDTO getUpdates() {
+    public Root getUpdates() {
         return bot.getUpdates();
     }
 }

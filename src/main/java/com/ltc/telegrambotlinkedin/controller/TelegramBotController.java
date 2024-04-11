@@ -1,6 +1,7 @@
 package com.ltc.telegrambotlinkedin.controller;
 
 import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotRequestDTO;
+import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Root;
 import com.ltc.telegrambotlinkedin.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +17,7 @@ public class TelegramBotController {
     private final TelegramBotService ts;
 
     @GetMapping("/updates")
-    BotRequestDTO getUpdates () {
+    Root getUpdates () {
         return ts.getUpdates();
     }
 
