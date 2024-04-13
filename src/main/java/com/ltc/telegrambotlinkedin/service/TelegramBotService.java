@@ -27,6 +27,8 @@ public class TelegramBotService {
     private final ModelMapper mpr;
     private int lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
+    private final Set<Long> welcomedUsers = new HashSet<>();
+
 
     /**
      * Gets raw updates starting from the last update id.
@@ -56,11 +58,24 @@ public class TelegramBotService {
     public void stageRequests() {
         while (!queue.isEmpty()) {
             UserRequestDTO request = queue.poll();
-            UserOfBot user = userRepo.findUser(request.getChatId());
+            Long chatId = (long) request.getChatId();
+            UserOfBot user = userRepo.findUser(Math.toIntExact(chatId));
             String text = request.getText();
+            log.info("request for chatId: {}, text: {}", chatId, text);
             switch (text) {
-                case "/start" -> createUser(request);
-                case "/new" -> user.setStage(UserStage.ENTERING_JOB);
+                case "/start" -> {
+                    if (user == null) {
+                        createUser(request);
+                        if (!welcomedUsers.contains(chatId)) {
+                            log.info("Sending welcome message to chatId: {}", chatId);
+                            bot.sendMessage(chatId, "Welcome to the Bizim Mehle.");
+                            welcomedUsers.add(chatId);
+                        }
+                    }
+                }
+                case "/new" -> {
+                    if (user != null) user.setStage(UserStage.ENTERING_JOB);
+                }
                 case "/edit" -> {
                     if (user != null) user.setStage(UserStage.ENTERING_JOB);
                 }
@@ -80,9 +95,11 @@ public class TelegramBotService {
             log.info(user.toString());
             user = userRepo.save(user);
             log.info(user.toString());
+
         }
         return mpr.map(user, UserResponseDTO.class);
     }
+
 
     public void processRequests(UserRequestDTO request, UserOfBot user) {
         UserStage stage = user.getStage();
