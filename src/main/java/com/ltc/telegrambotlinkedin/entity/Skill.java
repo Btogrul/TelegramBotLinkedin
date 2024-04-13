@@ -14,6 +14,6 @@ public class Skill {
     private long id;
     private String skillName;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     private List<UserOfBot> users;
 }
