@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface JSearchClient {
 
     @GetMapping("/search")
-    JSearchRoot getSearch(@RequestHeader("X-RapidAPI-Key") String key, @RequestHeader("X-RapidAPI-Host") String host,
-                          @RequestParam("query") String query, @RequestParam("page") Integer page,
+    JSearchRoot getSearch(@RequestHeader(name = "X-RapidAPI-Key") String key,
+                          @RequestHeader(name = "X-RapidAPI-Host") String host,
+                          @RequestParam("query") String query,
+                          @RequestParam("page") Integer page,
                           @RequestParam("numPages") Integer numPages);
 
 
