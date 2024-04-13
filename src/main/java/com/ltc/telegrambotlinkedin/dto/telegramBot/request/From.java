@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class From {
     @JsonProperty("id")
-    private int id;
+    private long id;
     @JsonProperty("is_bot")
     private boolean is_bot;
     @JsonProperty("first_name")

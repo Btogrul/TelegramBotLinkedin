@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class Chat{
     @JsonProperty("id")
-    private int chatId;
+    private long chatId;
     @JsonProperty("first_name")
     private String firstName;
     @JsonProperty("last_name")

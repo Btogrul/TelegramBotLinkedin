@@ -7,7 +7,7 @@ import java.util.ArrayList;
 @Data
 public class BotMessage {
     @JsonProperty("message_id")
-    private int message_id;
+    private long message_id;
     @JsonProperty("from")
     private From from;
     @JsonProperty("chat")
