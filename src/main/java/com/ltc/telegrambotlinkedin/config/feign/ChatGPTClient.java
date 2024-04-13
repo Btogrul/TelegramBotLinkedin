@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface ChatGPTClient {
 
     @PostMapping("conversationgpt4")
-    MessageResponseRoot getMessageFeign(@RequestHeader("X-RapidAPI-Key") String key, @RequestHeader("X-RapidAPI-Host") String host, @RequestBody MessageRoot root);
+    MessageResponseRoot getMessageFeign(@RequestHeader(name = "X-RapidAPI-Host") String host,
+                                        @RequestHeader(name = "X-RapidAPI-Key") String key,
+                                        @RequestBody MessageRoot root);
 
 }

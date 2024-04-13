@@ -4,10 +4,10 @@ import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
 import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotUpdatesDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Result;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
-import com.ltc.telegrambotlinkedin.dto.userDTO.UserResponseDTO;
 import com.ltc.telegrambotlinkedin.entity.Skill;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import com.ltc.telegrambotlinkedin.enums.UserStage;
+import com.ltc.telegrambotlinkedin.repository.SkillRepository;
 import com.ltc.telegrambotlinkedin.repository.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +24,7 @@ import java.util.*;
 public class TelegramBotService {
     private final TelegramBotClient bot;
     private final UserRepository userRepo;
+    private final SkillRepository skillRepo;
     private final ModelMapper mpr;
     private int lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
@@ -36,10 +37,10 @@ public class TelegramBotService {
      * Starts the next stage of processing the requests.
      */
     public void getUpdates() {
-        BotUpdatesDTO updates = bot.getUpdates(lastUpdateId);
+        BotUpdatesDTO updates = bot.getUpdates(lastUpdateId+1);
         ArrayList<Result> results = updates.getResults();
         if (!results.isEmpty()) {
-            this.lastUpdateId = results.getLast().getUpdate_id();
+            lastUpdateId = results.getLast().getUpdate_id();
             ArrayList<UserRequestDTO> requests = new ArrayList<>();
             for (Result r : results) {
                 UserRequestDTO requestDTO = mpr.map(r, UserRequestDTO.class);
@@ -87,47 +88,84 @@ public class TelegramBotService {
         }
     }
 
-    public UserResponseDTO createUser(UserRequestDTO request) {
+    public void createUser(UserRequestDTO request) {
         UserOfBot user = userRepo.findUser(request.getChatId());
         if (user == null) {
             user = mpr.map(request, UserOfBot.class);
             user.setStage(UserStage.CREATED);
-            log.info(user.toString());
             user = userRepo.save(user);
-            log.info(user.toString());
-
+            log.info("Saved user: " + user);
+        } else {
+            log.info("User %d exists".formatted(user.getChatId()));
         }
-        return mpr.map(user, UserResponseDTO.class);
+    }
+
+    public void newJobSearch(UserRequestDTO request, UserOfBot user) {
+        log.info("User is entering job title");
+        if (user!=null) {
+            user.setStage(UserStage.ENTERING_JOB);
+            userRepo.save(user);
+            log.info("User stage: " + user.getStage());
+        }
+    }
+
+    public void editJobSearch (UserRequestDTO request, UserOfBot user) {
+        log.info("User is editing details");
+        if (user!=null) {
+            user.setStage(UserStage.ENTERING_JOB);
+            userRepo.save(user);
+            log.info("User stage: " + user.getStage());
+            log.info(user.toString());
+        }
     }
 
 
     public void processRequests(UserRequestDTO request, UserOfBot user) {
-        UserStage stage = user.getStage();
+        UserStage stage = user == null ? null : user.getStage();
         switch (stage) {
-            case CREATED -> System.out.println();
-            case ENTERING_JOB -> user.setJobTitle(request.getText());
-            case ENTERING_SKILLS -> user.setSkillSet(findOrCreateSkills(request.getText()));
-            case PROCESSED -> System.out.println();
-            default -> System.out.println();
+            case CREATED -> log.info("Enter /new to start");
+            case ENTERING_JOB -> jobTitleSetter (request, user);
+            case ENTERING_SKILLS -> skillSetSetter(request, user);
+            case PROCESSED -> log.info("All set!");
+            case null -> log.info("Wrong input!");
         }
     }
 
-    List<Skill> findOrCreateSkills (String text) {
+    public void jobTitleSetter (UserRequestDTO request, UserOfBot user) {
+        user.setJobTitle(request.getText());
+        user.setStage(UserStage.ENTERING_SKILLS);
+        user = userRepo.save(user);
+        log.info(user.toString());
+    }
+
+    public void skillSetSetter(UserRequestDTO request, UserOfBot user) {
+        String text = request.getText();
         Set<String> skills = Set.of(text.split("\\s*,\\s*"));
-        return null;
+        log.info("String list: " + skills);
+        List<Skill> skillSet = findOrCreateSkills(skills);
+        log.info("Skill set: " + skillSet);
+        user.setSkillSet(skillSet);
+        user.setStage(UserStage.PROCESSED);
+        user = userRepo.save(user);
+        log.info(user.toString());
     }
 
-    public UserOfBot createJobSearch(Result result) {
-        return null;
+    public List<Skill> findOrCreateSkills (Set<String> skills) {
+        List<Skill> skillSet = new ArrayList<>();
+        for (String s : skills) {
+            log.info(s);
+            Skill skill = skillRepo.findSkill(s);
+            if (skill == null) {
+                skill = mpr.map(s, Skill.class);
+                skill = skillRepo.save(skill);
+                log.info("skill: " + skill);
+            }
+            skillSet.add(skill);
+        }
+        return skillSet;
     }
 
-    public UserOfBot updateUser(Result result) {
-        return null;
-    }
-
-    public UserResponseDTO deleteUser(UserRequestDTO request) {
-        UserOfBot user = userRepo.findUser(request.getChatId());
-        userRepo.delete(user);
-        return mpr.map(user, UserResponseDTO.class);
+    public void deleteUser(UserOfBot user) {
+        if (user != null) userRepo.delete(user);
     }
 }

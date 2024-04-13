@@ -4,5 +4,10 @@ public enum UserStage {
     CREATED,
     ENTERING_JOB,
     ENTERING_SKILLS,
-    PROCESSED
+    PROCESSED;
+
+    @Override
+    public String toString() {
+        return this.name();
+    }
 }

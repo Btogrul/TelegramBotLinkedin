@@ -1,6 +1,5 @@
 package com.ltc.telegrambotlinkedin.dto.userDTO;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -19,7 +18,7 @@ public class UserRequestDTO {
 
     @Override
     public String toString() {
-        return "date= " + date + "\n" + "chatId= " + chatId +
-                "\n" + firstName + " " + lastName + " : text= " + text + "\n";
+        return "date= " + date + " || chatId= " + chatId +
+                " || " + firstName + " " + lastName + " : " + text;
     }
 }
