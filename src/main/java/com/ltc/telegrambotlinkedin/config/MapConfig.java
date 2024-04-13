@@ -1,6 +1,7 @@
 package com.ltc.telegrambotlinkedin.config;
 
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
+import com.ltc.telegrambotlinkedin.entity.Skill;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,12 @@ public class MapConfig {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.createTypeMap(UserRequestDTO.class, UserOfBot.class)
                     .addMapping(src -> null, UserOfBot::setId);
+        modelMapper.createTypeMap(String.class, Skill.class)
+                .setConverter(context -> {
+            Skill skill = new Skill();
+            skill.setSkillName(context.getSource());
+            return skill;
+        });
         return modelMapper;
     }
 }
