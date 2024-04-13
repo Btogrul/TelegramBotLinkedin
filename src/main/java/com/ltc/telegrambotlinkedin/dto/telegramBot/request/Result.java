@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class Result {
     @JsonProperty("update_id")
-    private int update_id;
+    private long update_id;
     @JsonProperty("message")
     private BotMessage message;
 }

@@ -26,7 +26,7 @@ public class TelegramBotService {
     private final UserRepository userRepo;
     private final SkillRepository skillRepo;
     private final ModelMapper mpr;
-    private int lastUpdateId;
+    private long lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
     private final Set<Long> welcomedUsers = new HashSet<>();
 
@@ -59,37 +59,23 @@ public class TelegramBotService {
     public void stageRequests() {
         while (!queue.isEmpty()) {
             UserRequestDTO request = queue.poll();
-            Long chatId = (long) request.getChatId();
+            long chatId = request.getChatId();
             UserOfBot user = userRepo.findUser(Math.toIntExact(chatId));
             String text = request.getText();
+
             log.info("request for chatId: {}, text: {}", chatId, text);
             switch (text) {
-                case "/start" -> {
-                    if (user == null) {
-                        createUser(request);
-                        if (!welcomedUsers.contains(chatId)) {
-                            log.info("Sending welcome message to chatId: {}", chatId);
-                            bot.sendMessage(chatId, "Welcome to the Bizim Mehle.");
-                            welcomedUsers.add(chatId);
-                        }
-                    }
-                }
-                case "/new" -> {
-                    if (user != null) user.setStage(UserStage.ENTERING_JOB);
-                }
-                case "/edit" -> {
-                    if (user != null) user.setStage(UserStage.ENTERING_JOB);
-                }
-                case "/delete" -> {
-                    if (user != null) deleteUser(request);
-                }
+                case "/start" -> createUser(request, user);
+                case "/new" -> newJobSearch(user);
+                case "/edit" -> editJobSearch(user);
+                case "/delete" -> deleteUser(user);
                 default -> processRequests(request, user);
             }
         }
     }
 
-    public void createUser(UserRequestDTO request) {
-        UserOfBot user = userRepo.findUser(request.getChatId());
+    public void createUser(UserRequestDTO request, UserOfBot user) {
+        long chatId = request.getChatId();
         if (user == null) {
             user = mpr.map(request, UserOfBot.class);
             user.setStage(UserStage.CREATED);
@@ -98,23 +84,27 @@ public class TelegramBotService {
         } else {
             log.info("User %d exists".formatted(user.getChatId()));
         }
+        if (!welcomedUsers.contains(chatId)) {
+            log.info("Sending welcome message to chatId: {}", chatId);
+            bot.sendMessage(chatId, "Welcome to the Bizim Mehle.");
+            welcomedUsers.add(chatId);
+        }
     }
 
-    public void newJobSearch(UserRequestDTO request, UserOfBot user) {
+    public void newJobSearch(UserOfBot user) {
         log.info("User is entering job title");
-        if (user!=null) {
+        if (user!=null && user.getJobTitle() == null) {
             user.setStage(UserStage.ENTERING_JOB);
             userRepo.save(user);
             log.info("User stage: " + user.getStage());
         }
     }
 
-    public void editJobSearch (UserRequestDTO request, UserOfBot user) {
+    public void editJobSearch (UserOfBot user) {
         log.info("User is editing details");
         if (user!=null) {
             user.setStage(UserStage.ENTERING_JOB);
             userRepo.save(user);
-            log.info("User stage: " + user.getStage());
             log.info(user.toString());
         }
     }
@@ -132,18 +122,20 @@ public class TelegramBotService {
     }
 
     public void jobTitleSetter (UserRequestDTO request, UserOfBot user) {
-        user.setJobTitle(request.getText());
-        user.setStage(UserStage.ENTERING_SKILLS);
-        user = userRepo.save(user);
-        log.info(user.toString());
+            user.setJobTitle(request.getText());
+            user.setStage(UserStage.ENTERING_SKILLS);
+            user = userRepo.save(user);
+            log.info(user.toString());
     }
 
     public void skillSetSetter(UserRequestDTO request, UserOfBot user) {
         String text = request.getText();
         Set<String> skills = Set.of(text.split("\\s*,\\s*"));
         log.info("String list: " + skills);
+
         List<Skill> skillSet = findOrCreateSkills(skills);
         log.info("Skill set: " + skillSet);
+
         user.setSkillSet(skillSet);
         user.setStage(UserStage.PROCESSED);
         user = userRepo.save(user);

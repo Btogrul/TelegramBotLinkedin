@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends CrudRepository<UserOfBot, Long> {
     @Query("SELECT u FROM UserOfBot u WHERE u.chatId = :chatId")
-    UserOfBot findUser(@Param(value = "chatId") int chatId);
+    UserOfBot findUser(@Param(value = "chatId") long chatId);
 }

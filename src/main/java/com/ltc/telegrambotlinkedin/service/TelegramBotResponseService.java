@@ -19,7 +19,7 @@ public class TelegramBotResponseService {
     private final TelegramBotClient bot;
     private final UserRepository userRepo;
     private final ModelMapper mpr;
-    private int lastUpdateId;
+    private long lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
 
 }

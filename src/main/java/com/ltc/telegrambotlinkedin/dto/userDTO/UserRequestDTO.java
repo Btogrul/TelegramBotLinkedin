@@ -10,7 +10,7 @@ public class UserRequestDTO {
     @JsonProperty("text")
     private String text;
     @JsonProperty("chatId")
-    private int chatId;
+    private long chatId;
     @JsonProperty("firstName")
     private String firstName;
     @JsonProperty("lastName")
