@@ -22,6 +22,7 @@ public class UserOfBot {
     private String lastName;
     private String jobTitle;
     private UserStage stage;
+    private String location;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Skill> skillSet;
