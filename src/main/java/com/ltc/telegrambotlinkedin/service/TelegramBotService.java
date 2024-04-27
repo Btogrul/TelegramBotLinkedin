@@ -1,6 +1,10 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchJob;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
+import com.ltc.telegrambotlinkedin.dto.others.MessageRoot;
 import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotUpdatesDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Result;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
@@ -13,6 +17,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,13 +34,10 @@ public class TelegramBotService {
     private long lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
     private final Set<Long> welcomedUsers = new HashSet<>();
+    private Set<String> jobsSentToUser = new HashSet<>();
+    @Autowired
+    private JSearchService jSearchService;
 
-
-    /**
-     * Gets raw updates starting from the last update id.
-     * If any update presents maps them into UserRequestDTO and adds them into queue.
-     * Starts the next stage of processing the requests.
-     */
     public void getUpdates() {
         BotUpdatesDTO updates = bot.getUpdates(lastUpdateId+1);
         ArrayList<Result> results = updates.getResults();
@@ -53,9 +55,7 @@ public class TelegramBotService {
         }
     }
 
-    /**
-     * Sets stages of the users based on request and distributes them to related methods.
-     */
+
     public void stageRequests() {
         while (!queue.isEmpty()) {
             UserRequestDTO request = queue.poll();
@@ -116,16 +116,20 @@ public class TelegramBotService {
             case CREATED -> log.info("Enter /new to start");
             case ENTERING_JOB -> jobTitleSetter (request, user);
             case ENTERING_SKILLS -> skillSetSetter(request, user);
+            case CONFIRM_JOB_TITLE -> confirmJobTitleAndSearch(request, user);
             case PROCESSED -> log.info("All set!");
             case null -> log.info("Wrong input!");
+            default -> throw new IllegalStateException("Unexpected value: " + stage);
         }
     }
 
     public void jobTitleSetter (UserRequestDTO request, UserOfBot user) {
             user.setJobTitle(request.getText());
+            user.setStage(UserStage.CONFIRM_JOB_TITLE);
             user.setStage(UserStage.ENTERING_SKILLS);
             user = userRepo.save(user);
             log.info(user.toString());
+            log.info("Job title set to: {}", user.getJobTitle());
     }
 
     public void skillSetSetter(UserRequestDTO request, UserOfBot user) {
@@ -159,5 +163,43 @@ public class TelegramBotService {
 
     public void deleteUser(UserOfBot user) {
         if (user != null) userRepo.delete(user);
+    }
+
+
+    //-------------------------------
+
+    public void confirmJobTitleAndSearch(UserRequestDTO request, UserOfBot user) {
+        String jobTitle = request.getText();
+        if (!Objects.equals(user.getJobTitle(), jobTitle)) {
+            user.setJobTitle(jobTitle);
+            user.setStage(UserStage.CONFIRM_JOB_TITLE);
+            userRepo.save(user);
+            bot.sendMessage(request.getChatId(), "confirm your job title: " + jobTitle);
+        } else {
+            searchJobs(user);
+        }
+    }
+
+
+    public void searchJobs(UserOfBot user) {
+        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle(), 1, 10);
+        ArrayList<Datum> jobList = jobs.getData();
+        if (jobList.isEmpty()) {
+            bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
+            return;
+        }
+
+        Set<String> uniqueJobs = new HashSet<>();
+        for (Datum job : jobList) {
+            String jobString = job.getJob_title() + " (" + job.getEmployer_name() + ")";
+            if (!uniqueJobs.contains(jobString)) {
+                uniqueJobs.add(jobString);
+                if (jobsSentToUser.add(job.getJob_id())) {
+                    bot.sendMessage(user.getChatId(), "New job found: " + jobString);
+                } else {
+                    bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
+                }
+            }
+        }
     }
 }

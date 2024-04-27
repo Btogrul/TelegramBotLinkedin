@@ -4,6 +4,7 @@ public enum UserStage {
     CREATED,
     ENTERING_JOB,
     ENTERING_SKILLS,
+    CONFIRM_JOB_TITLE,
     PROCESSED;
 
     @Override
