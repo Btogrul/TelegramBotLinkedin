@@ -16,4 +16,9 @@ public class Skill {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     private List<UserOfBot> users;
+
+    @Override
+    public String toString() {
+        return skillName;
+    }
 }

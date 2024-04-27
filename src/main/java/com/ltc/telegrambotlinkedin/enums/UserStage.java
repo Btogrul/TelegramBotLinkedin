@@ -4,6 +4,7 @@ public enum UserStage {
     CREATED,
     ENTERING_JOB,
     ENTERING_SKILLS,
+    ENTERING_LOCATION,
     CONFIRM_JOB_TITLE,
     PROCESSED;
 
