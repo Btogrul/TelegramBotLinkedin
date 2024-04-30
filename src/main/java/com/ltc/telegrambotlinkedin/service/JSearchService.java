@@ -21,8 +21,4 @@ public class JSearchService {
     public JSearchRoot getJobSearchResults(@RequestParam String query, @RequestParam String date) {
         return jSearchClient.getSearch(jSearchKey, jSearchHost, query, date);
     }
-
-
-
-
 }
