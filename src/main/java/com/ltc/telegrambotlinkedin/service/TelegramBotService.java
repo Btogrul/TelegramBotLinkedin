@@ -15,7 +15,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
@@ -24,17 +23,17 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class TelegramBotService {
-    private final TelegramBotClient bot;
+
     private final UserRepository userRepo;
     private final SkillRepository skillRepo;
+
     private final ModelMapper mpr;
+    private final TelegramBotClient bot;
+    private final JSearchService jSearchService;
+
     private long lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
-    private final Set<Long> welcomedUsers = new HashSet<>();
     private Set<String> jobsSentToUser = new HashSet<>();
-    @Autowired
-    private JSearchService jSearchService;
-
 
     /**
      * Gets raw updates starting from the last update id.
@@ -102,11 +101,6 @@ public class TelegramBotService {
                     To start a new job search, choose the /new command.
                     If you need to edit your current job search, choose /edit command.""");
         }
-//        if (!welcomedUsers.contains(chatId)) {
-//            log.info("Sending welcome message to chatId: {}", chatId);
-//            bot.sendMessage(chatId, "Hello " + user.getFirstName());
-//            welcomedUsers.add(chatId);
-//        }
     }
 
     /**
@@ -166,7 +160,7 @@ public class TelegramBotService {
     }
 
     /**
-     * The method sets the skill set of the user and puts the user in PROCESSED stage to process furthermore.
+     * The method sets the skill set of the user and puts the user in ENTERING_LOCATION stage to process furthermore.
      * @param request - contains all useful data about the user.
      * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
@@ -184,6 +178,11 @@ public class TelegramBotService {
                                     Baku""");
     }
 
+    /**
+     * The method sets the location of the user and puts the user in PROCESSED stage to process furthermore.
+     * @param request - contains all useful data about the user.
+     * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     */
     public void locationSetter (UserRequestDTO request, UserOfBot user) {
         user.setLocation(request.getText());
         user.setStage(UserStage.PROCESSED);
@@ -243,7 +242,7 @@ public class TelegramBotService {
 
 
     public void searchJobs(UserOfBot user) {
-        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle(), 1, 10);
+        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle(), "today");
         ArrayList<Datum> jobList = jobs.getData();
         if (jobList.isEmpty()) {
             bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
