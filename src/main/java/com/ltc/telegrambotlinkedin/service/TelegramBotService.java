@@ -227,9 +227,6 @@ public class TelegramBotService {
         if (user != null) userRepo.delete(user);
     }
 
-
-    //-------------------------------
-
     public void confirmJobTitleAndSearch(UserRequestDTO request, UserOfBot user) {
         String jobTitle = request.getText();
         if (jobTitle.equals(user.getJobTitle())) {
@@ -243,7 +240,7 @@ public class TelegramBotService {
     }
 
     public void searchJobs(UserOfBot user) {
-        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle(), "today");
+        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle());
         ArrayList<Datum> jobList = jobs.getData();
         if (jobList.isEmpty()) {
             bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());

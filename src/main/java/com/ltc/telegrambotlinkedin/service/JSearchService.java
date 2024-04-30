@@ -13,12 +13,12 @@ public class JSearchService {
     private final JSearchClient jSearchClient;
 
     @Value("${jSearchKey}")
-    private static String jSearchKey;
+    private String jSearchKey;
     @Value("${jSearchHost}")
-    private static String jSearchHost;
+    private String jSearchHost;
 
 
-    public JSearchRoot getJobSearchResults(@RequestParam String query, @RequestParam String date) {
-        return jSearchClient.getSearch(jSearchKey, jSearchHost, query, date);
+    public JSearchRoot getJobSearchResults(String query) {
+        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10);
     }
 }
