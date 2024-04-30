@@ -71,7 +71,7 @@ public class TelegramBotService {
 
             switch (text) {
                 case "/start" -> createUser(request, user);
-                case "/new", "/edit" -> newJobSearch(chatId, user);
+                case "/new", "/edit" -> createUser(chatId, user);
                 case "/delete" -> deleteUser(user);
                 default -> processRequests(request, user);
             }
@@ -109,9 +109,9 @@ public class TelegramBotService {
      * This method helps program to know that the next request is going to be a job title.
      * @param user - contains all useful data about the user.
      */
-    public void newJobSearch(long chatId, UserOfBot user) {
+    public void createUser(long chatId, UserOfBot user) {
         if (user!=null) {
-            user.setStage(UserStage.ENTERING_JOB);
+            user.setStage(UserStage.ENTERING_TITLE);
             userRepo.save(user);
             bot.sendMessage(user.getChatId(), "1/3 Enter the title of the job you want to apply to.");
         } else {
@@ -127,14 +127,13 @@ public class TelegramBotService {
     public void processRequests(UserRequestDTO request, UserOfBot user) {
         UserStage stage = user == null ? null : user.getStage();
         switch (stage) {
-            case CREATED -> bot.sendMessage(user.getChatId(), """
+            case CREATED, PROCESSED -> bot.sendMessage(user.getChatId(), """
                     To start a new job search, choose the /new command.
                     If you need to edit your current job search, choose /edit command.""");
-            case ENTERING_JOB -> jobTitleSetter (request, user);
+            case ENTERING_TITLE -> jobTitleSetter (request, user);
             case ENTERING_SKILLS -> skillSetSetter(request, user);
             case ENTERING_LOCATION -> locationSetter(request, user);
-            case CONFIRM_JOB_TITLE -> confirmJobTitleAndSearch(request, user);
-            case PROCESSED -> log.info("All set!");
+            case CONFIRM_SEARCH -> confirmJobTitleAndSearch(request, user);
             case null -> bot.sendMessage(request.getChatId(), """
                     Enter /start to get started!""");
             default -> throw new IllegalStateException("Unexpected value: " + stage);
@@ -148,7 +147,7 @@ public class TelegramBotService {
      */
     public void jobTitleSetter (UserRequestDTO request, UserOfBot user) {
             user.setJobTitle(request.getText());
-            user.setStage(UserStage.CONFIRM_JOB_TITLE);
+            user.setStage(UserStage.CONFIRM_SEARCH);
             user.setStage(UserStage.ENTERING_SKILLS);
             user = userRepo.save(user);
             log.info(user.toString());
@@ -185,7 +184,7 @@ public class TelegramBotService {
      */
     public void locationSetter (UserRequestDTO request, UserOfBot user) {
         user.setLocation(request.getText());
-        user.setStage(UserStage.PROCESSED);
+        user.setStage(UserStage.CONFIRM_SEARCH);
         userRepo.save(user);
         StringBuilder skills = new StringBuilder();
         user.getSkillSet().forEach(s -> skills.append(s.toString().indent(6)));
@@ -196,7 +195,10 @@ public class TelegramBotService {
                 2️⃣ Skill set:
                 %s
                 3️⃣ Location:
-                %s""".formatted(user.getJobTitle().indent(6), skills, user.getLocation().indent(6)));
+                %s
+                
+                Enter job title again to confirm and start."""
+                .formatted(user.getJobTitle().indent(6), skills, user.getLocation().indent(6)));
     }
 
     /**
@@ -230,13 +232,13 @@ public class TelegramBotService {
 
     public void confirmJobTitleAndSearch(UserRequestDTO request, UserOfBot user) {
         String jobTitle = request.getText();
-        if (!Objects.equals(user.getJobTitle(), jobTitle)) {
-            user.setJobTitle(jobTitle);
-            user.setStage(UserStage.CONFIRM_JOB_TITLE);
+        if (jobTitle.equals(user.getJobTitle())) {
+            user.setStage(UserStage.PROCESSED);
             userRepo.save(user);
-            bot.sendMessage(request.getChatId(), "confirm your job title: " + jobTitle);
+            bot.sendMessage(request.getChatId(), "Here we go... 🚀");
         } else {
-            searchJobs(user);
+            bot.sendMessage(request.getChatId(),
+                    "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
         }
     }
 
