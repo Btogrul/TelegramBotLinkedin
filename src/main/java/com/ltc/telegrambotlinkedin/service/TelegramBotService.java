@@ -34,6 +34,7 @@ public class TelegramBotService {
     private long lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
     private Set<String> jobsSentToUser = new HashSet<>();
+    private ChatGptService chatGptService;
 
     /**
      * Gets raw updates starting from the last update id.
@@ -41,7 +42,7 @@ public class TelegramBotService {
      * Starts the next stage of processing the requests.
      */
     public void getUpdates() {
-        BotUpdatesDTO updates = bot.getUpdates(lastUpdateId+1);
+        BotUpdatesDTO updates = bot.getUpdates(lastUpdateId + 1);
         ArrayList<Result> results = updates.getResults();
         if (!results.isEmpty()) {
             lastUpdateId = results.getLast().getUpdate_id();
@@ -80,8 +81,9 @@ public class TelegramBotService {
 
     /**
      * Method works if user sent /start command for the first time or deleted all records previously.
+     *
      * @param request - contains all useful data about the user.
-     * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
     public void createUser(UserRequestDTO request, UserOfBot user) {
         long chatId = request.getChatId();
@@ -107,10 +109,11 @@ public class TelegramBotService {
      * The method works if user sent /new or /edit commands.
      * The method sets the user stage to ENTERING_JOB if user is already in database.
      * This method helps program to know that the next request is going to be a job title.
+     *
      * @param user - contains all useful data about the user.
      */
     public void createUser(long chatId, UserOfBot user) {
-        if (user!=null) {
+        if (user != null) {
             user.setStage(UserStage.ENTERING_TITLE);
             userRepo.save(user);
             bot.sendMessage(user.getChatId(), "1/3 Enter the title of the job you want to apply to.");
@@ -121,8 +124,9 @@ public class TelegramBotService {
 
     /**
      * This method processes requests based on the stage of the user.
+     *
      * @param request - contains all useful data about the user.
-     * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
     public void processRequests(UserRequestDTO request, UserOfBot user) {
         UserStage stage = user == null ? null : user.getStage();
@@ -130,7 +134,7 @@ public class TelegramBotService {
             case CREATED, PROCESSED -> bot.sendMessage(user.getChatId(), """
                     To start a new job search, choose the /new command.
                     If you need to edit your current job search, choose /edit command.""");
-            case ENTERING_TITLE -> jobTitleSetter (request, user);
+            case ENTERING_TITLE -> jobTitleSetter(request, user);
             case ENTERING_SKILLS -> skillSetSetter(request, user);
             case ENTERING_LOCATION -> locationSetter(request, user);
             case CONFIRM_SEARCH -> confirmJobTitleAndSearch(request, user);
@@ -142,26 +146,28 @@ public class TelegramBotService {
 
     /**
      * The method sets the title of the job and puts the user in ENTERING_SKILLS stage to process furthermore.
+     *
      * @param request - contains all useful data about the user.
-     * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void jobTitleSetter (UserRequestDTO request, UserOfBot user) {
-            user.setJobTitle(request.getText());
-            user.setStage(UserStage.CONFIRM_SEARCH);
-            user.setStage(UserStage.ENTERING_SKILLS);
-            user = userRepo.save(user);
-            log.info(user.toString());
-            log.info("Job title set to: {}", user.getJobTitle());
-            userRepo.save(user);
-            bot.sendMessage(user.getChatId(), """
+    public void jobTitleSetter(UserRequestDTO request, UserOfBot user) {
+        user.setJobTitle(request.getText());
+        user.setStage(UserStage.CONFIRM_SEARCH);
+        user.setStage(UserStage.ENTERING_SKILLS);
+        user = userRepo.save(user);
+        log.info(user.toString());
+        log.info("Job title set to: {}", user.getJobTitle());
+        userRepo.save(user);
+        bot.sendMessage(user.getChatId(), """
                 2/3 Enter your comma delimited skill set as in example:
                     this skill, that skill, another skill""");
     }
 
     /**
      * The method sets the skill set of the user and puts the user in ENTERING_LOCATION stage to process furthermore.
+     *
      * @param request - contains all useful data about the user.
-     * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
     public void skillSetSetter(UserRequestDTO request, UserOfBot user) {
         String text = request.getText();
@@ -173,16 +179,17 @@ public class TelegramBotService {
         userRepo.save(user);
 
         bot.sendMessage(user.getChatId(), """
-                                3/3 Enter the location where you want to work. Example:
-                                    Baku""");
+                3/3 Enter the location where you want to work. Example:
+                    Baku""");
     }
 
     /**
      * The method sets the location of the user and puts the user in PROCESSED stage to process furthermore.
+     *
      * @param request - contains all useful data about the user.
-     * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void locationSetter (UserRequestDTO request, UserOfBot user) {
+    public void locationSetter(UserRequestDTO request, UserOfBot user) {
         user.setLocation(request.getText());
         user.setStage(UserStage.CONFIRM_SEARCH);
         userRepo.save(user);
@@ -196,17 +203,18 @@ public class TelegramBotService {
                 %s
                 3️⃣ Location:
                 %s
-                
+                                
                 Enter job title again to confirm and start."""
                 .formatted(user.getJobTitle().indent(6), skills, user.getLocation().indent(6)));
     }
 
     /**
      * This method searches in the database for skills provided by user. If it finds retrieves them or creates them.
+     *
      * @param skills - a set of Strings representing the skills that user entered.
      * @return - returns a List of Skill entities that are found or created.
      */
-    public List<Skill> findOrCreateSkills (Set<String> skills) {
+    public List<Skill> findOrCreateSkills(Set<String> skills) {
         List<Skill> skillSet = new ArrayList<>();
         for (String s : skills) {
             Skill skill = skillRepo.findSkill(s);
@@ -221,6 +229,7 @@ public class TelegramBotService {
 
     /**
      * Deletes the record related to the user.
+     *
      * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
     public void deleteUser(UserOfBot user) {
@@ -233,6 +242,9 @@ public class TelegramBotService {
             user.setStage(UserStage.PROCESSED);
             userRepo.save(user);
             bot.sendMessage(request.getChatId(), "Here we go... 🚀");
+
+
+            searchJobs(user);
         } else {
             bot.sendMessage(request.getChatId(),
                     "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
@@ -240,8 +252,12 @@ public class TelegramBotService {
     }
 
     public void searchJobs(UserOfBot user) {
+        String location = user.getLocation();
+        String jobTitle = user.getJobTitle();
         JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle());
+
         ArrayList<Datum> jobList = jobs.getData();
+
         if (jobList.isEmpty()) {
             bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
             return;
@@ -252,10 +268,14 @@ public class TelegramBotService {
             String jobString = job.getJob_title() + " (" + job.getEmployer_name() + ")";
             if (!uniqueJobs.contains(jobString)) {
                 uniqueJobs.add(jobString);
-                if (jobsSentToUser.add(job.getJob_id())) {
-                    bot.sendMessage(user.getChatId(), "New job found: " + jobString);
-                } else {
-                    bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
+                List<String> requiredSkills = chatGptService.analyzeJobDescription(job.getJob_description());
+                if (user.getSkillSet().containsAll(requiredSkills) && user.getJobTitle().contains(jobTitle)
+                        && user.getLocation().contains(location)) {
+                    if (jobsSentToUser.add(job.getJob_id())) {
+                        bot.sendMessage(user.getChatId(), "New job found: " + jobString);
+                    } else {
+                        bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
+                    }
                 }
             }
         }
