@@ -242,7 +242,6 @@ public class TelegramBotService {
         }
     }
 
-
     public void searchJobs(UserOfBot user) {
         JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle(), "today");
         ArrayList<Datum> jobList = jobs.getData();
