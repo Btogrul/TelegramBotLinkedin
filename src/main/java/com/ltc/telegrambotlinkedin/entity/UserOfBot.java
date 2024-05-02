@@ -3,7 +3,10 @@ package com.ltc.telegrambotlinkedin.entity;
 import com.ltc.telegrambotlinkedin.enums.UserStage;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.util.Date;
 import java.util.List;
 
 @AllArgsConstructor
@@ -23,6 +26,13 @@ public class UserOfBot {
     private String jobTitle;
     private UserStage stage;
     private String location;
+
+
+    @CreationTimestamp
+    private Date creationDate;
+
+    @UpdateTimestamp
+    private Date updateDate;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Skill> skillSet;
