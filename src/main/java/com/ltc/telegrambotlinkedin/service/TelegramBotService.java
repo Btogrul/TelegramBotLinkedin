@@ -1,10 +1,8 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
-import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
-import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
-import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotUpdatesDTO;
-import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Result;
+import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.BotUpdatesDTO;
+import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.Result;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
 import com.ltc.telegrambotlinkedin.entity.Skill;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
@@ -67,7 +65,7 @@ public class TelegramBotService {
         while (!queue.isEmpty()) {
             UserRequestDTO request = queue.poll();
             long chatId = request.getChatId();
-            UserOfBot user = userRepo.findUser(Math.toIntExact(chatId));
+            UserOfBot user = userRepo.findUser(chatId);
             String text = request.getText();
 
             switch (text) {
@@ -190,7 +188,7 @@ public class TelegramBotService {
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
     public void locationSetter(UserRequestDTO request, UserOfBot user) {
-        user.setLocation(request.getText());
+        user.setUserLocation(request.getText());
         user.setStage(UserStage.CONFIRM_SEARCH);
         userRepo.save(user);
         StringBuilder skills = new StringBuilder();
@@ -205,7 +203,7 @@ public class TelegramBotService {
                 %s
                                 
                 Enter job title again to confirm and start."""
-                .formatted(user.getJobTitle().indent(6), skills, user.getLocation().indent(6)));
+                .formatted(user.getJobTitle().indent(6), skills, user.getUserLocation().indent(6)));
     }
 
     /**
@@ -244,40 +242,40 @@ public class TelegramBotService {
             bot.sendMessage(request.getChatId(), "Here we go... 🚀");
 
 
-            searchJobs(user);
+//            searchJobs(user);
         } else {
             bot.sendMessage(request.getChatId(),
                     "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
         }
     }
 
-    public void searchJobs(UserOfBot user) {
-        String location = user.getLocation();
-        String jobTitle = user.getJobTitle();
-        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle());
-
-        ArrayList<Datum> jobList = jobs.getData();
-
-        if (jobList.isEmpty()) {
-            bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
-            return;
-        }
-
-        Set<String> uniqueJobs = new HashSet<>();
-        for (Datum job : jobList) {
-            String jobString = job.getJob_title() + " (" + job.getEmployer_name() + ")";
-            if (!uniqueJobs.contains(jobString)) {
-                uniqueJobs.add(jobString);
-                List<String> requiredSkills = chatGptService.analyzeJobDescription(job.getJob_description());
-                if (user.getSkillSet().containsAll(requiredSkills) && user.getJobTitle().contains(jobTitle)
-                        && user.getLocation().contains(location)) {
-                    if (jobsSentToUser.add(job.getJob_id())) {
-                        bot.sendMessage(user.getChatId(), "New job found: " + jobString);
-                    } else {
-                        bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
-                    }
-                }
-            }
-        }
-    }
+//    public void searchJobs(UserOfBot user) {
+//        String location = user.getLocation();
+//        String jobTitle = user.getJobTitle();
+//        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle());
+//
+//        ArrayList<Datum> jobList = jobs.getData();
+//
+//        if (jobList.isEmpty()) {
+//            bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
+//            return;
+//        }
+//
+//        Set<String> uniqueJobs = new HashSet<>();
+//        for (Datum job : jobList) {
+//            String jobString = job.getJob_title() + " (" + job.getEmployer_name() + ")";
+//            if (!uniqueJobs.contains(jobString)) {
+//                uniqueJobs.add(jobString);
+//                List<String> requiredSkills = chatGptService.analyzeJobDescription(job.getJob_description());
+//                if (user.getSkillSet().containsAll(requiredSkills) && user.getJobTitle().contains(jobTitle)
+//                        && user.getLocation().contains(location)) {
+//                    if (jobsSentToUser.add(job.getJob_id())) {
+//                        bot.sendMessage(user.getChatId(), "New job found: " + jobString);
+//                    } else {
+//                        bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
+//                    }
+//                }
+//            }
+//        }
+//    }
 }

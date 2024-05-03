@@ -1,6 +1,6 @@
 package com.ltc.telegrambotlinkedin.config.feign;
 
-import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotUpdatesDTO;
+import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.BotUpdatesDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

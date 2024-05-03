@@ -22,11 +22,9 @@ import java.util.List;
 public class ChatGptService {
     private final ChatGPTClient chatGPTClient;
     @Value("${gptKey}")
-    private static String gptKey;
+    private String gptKey;
     @Value("${gptHost}")
-    private static String gptHost;
-
-
+    private String gptHost;
 
 
     public MessageResponseRoot getChat(GptRequestDto requestDto) {
@@ -34,11 +32,9 @@ public class ChatGptService {
         Message message = new Message();
         message.setContent(finalMessage);
 
-
         MessageRoot messageRoot = new MessageRoot();
         messageRoot.setMessages(new ArrayList<>());
         messageRoot.getMessages().add(message);
-
 
         return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
     }
