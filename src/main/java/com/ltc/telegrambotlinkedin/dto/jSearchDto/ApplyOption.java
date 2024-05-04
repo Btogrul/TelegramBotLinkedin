@@ -1,10 +1,14 @@
 package com.ltc.telegrambotlinkedin.dto.jSearchDto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class ApplyOption {
+    @JsonProperty("publisher")
     public String publisher;
-    public String apply_link;
-    public boolean is_direct;
+    @JsonProperty("apply_link")
+    public String applyLink;
+    @JsonProperty("is_direct")
+    public boolean isDirect;
 }

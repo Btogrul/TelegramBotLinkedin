@@ -2,30 +2,38 @@ package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.ChatGPTClient;
 import com.ltc.telegrambotlinkedin.dto.gpt.GptRequestDto;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.Job;
 import com.ltc.telegrambotlinkedin.dto.others.Message;
 import com.ltc.telegrambotlinkedin.dto.others.MessageResponseRoot;
 import com.ltc.telegrambotlinkedin.dto.others.MessageRoot;
+import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import feign.FeignException;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ChatGptService {
-    private final ChatGPTClient chatGPTClient;
     @Value("${gptKey}")
     private String gptKey;
     @Value("${gptHost}")
     private String gptHost;
+
+    private final ChatGPTClient chatGPTClient;
+
+    public Map<UserOfBot, List<Job>> analyzeResults (Map<UserOfBot, List<Job>> foundJobs) {
+        return foundJobs;
+    }
+
+
 //    public MessageResponseRoot getChat(GptRequestDto requestDto) {
 //        String finalMessage = requestDto.finalMessage();
 //        Message message = new Message();

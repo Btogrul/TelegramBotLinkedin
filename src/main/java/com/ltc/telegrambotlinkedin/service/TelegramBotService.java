@@ -1,8 +1,7 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
-import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
-import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.Job;
 import com.ltc.telegrambotlinkedin.dto.gpt.GptRequestDto;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.BotUpdatesDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.Result;
@@ -262,12 +261,7 @@ public class TelegramBotService {
 
         GptRequestDto gptRequestDto = new GptRequestDto();
 
-
-
-        JSearchRoot jobs = jSearchService.getJobSearchResults(user_info);
-
-
-        ArrayList<Datum> jobList = jobs.getData();
+        ArrayList<Job> jobList = jSearchService.getAllJobs(user_info);
 
         if (jobList.isEmpty()) {
             bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
@@ -277,13 +271,13 @@ public class TelegramBotService {
         Set<String> uniqueJobs = new HashSet<>();
 
 
-        for (Datum job : jobList) {
-            String jobString = job.getJob_title() + " (" + job.getEmployer_name() + ")";
+        for (Job job : jobList) {
+            String jobString = job.getJobTitle() + " (" + job.getEmployerName() + ")";
 
 
             gptRequestDto.setUser(user);
-            gptRequestDto.setJobs(jobs.getData().stream()
-                    .map(Datum::getJob_title)
+            gptRequestDto.setJobs(jobList.stream()
+                    .map(Job::getJobTitle)
                     .collect(Collectors.toList()));
             gptRequestDto.setMessage("is this user compatible with this vacancy, say yes or no : ");
 
@@ -303,8 +297,8 @@ public class TelegramBotService {
 //                String response = chatGptService.getChat(gptRequestDto).getResult();
 
 
-                if (jobsSentToUser.add(job.getJob_id())) {
-                    bot.sendMessage(user.getChatId(), "New job found: " + jobString + job.getJob_apply_link());
+                if (jobsSentToUser.add(job.getJobId())) {
+                    bot.sendMessage(user.getChatId(), "New job found: " + jobString + job.getJobApplyLink());
                 } else {
                     bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
                 }
