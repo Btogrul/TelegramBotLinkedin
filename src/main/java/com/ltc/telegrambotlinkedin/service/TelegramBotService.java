@@ -1,6 +1,8 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.BotUpdatesDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.Result;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
@@ -241,41 +243,9 @@ public class TelegramBotService {
             userRepo.save(user);
             bot.sendMessage(request.getChatId(), "Here we go... 🚀");
 
-
-//            searchJobs(user);
         } else {
             bot.sendMessage(request.getChatId(),
                     "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
         }
     }
-
-//    public void searchJobs(UserOfBot user) {
-//        String location = user.getLocation();
-//        String jobTitle = user.getJobTitle();
-//        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle());
-//
-//        ArrayList<Datum> jobList = jobs.getData();
-//
-//        if (jobList.isEmpty()) {
-//            bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
-//            return;
-//        }
-//
-//        Set<String> uniqueJobs = new HashSet<>();
-//        for (Datum job : jobList) {
-//            String jobString = job.getJob_title() + " (" + job.getEmployer_name() + ")";
-//            if (!uniqueJobs.contains(jobString)) {
-//                uniqueJobs.add(jobString);
-//                List<String> requiredSkills = chatGptService.analyzeJobDescription(job.getJob_description());
-//                if (user.getSkillSet().containsAll(requiredSkills) && user.getJobTitle().contains(jobTitle)
-//                        && user.getLocation().contains(location)) {
-//                    if (jobsSentToUser.add(job.getJob_id())) {
-//                        bot.sendMessage(user.getChatId(), "New job found: " + jobString);
-//                    } else {
-//                        bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
-//                    }
-//                }
-//            }
-//        }
-//    }
 }
