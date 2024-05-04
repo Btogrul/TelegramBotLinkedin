@@ -24,6 +24,7 @@ public class JSearchService {
     private final JSearchClient jSearchClient;
     private final UserRepository userRepo;
     private final Queue<UserForJSearchDTO> processedUsers = new ArrayDeque<>();
+  
     public JSearchRoot getJobSearchResults(String query) {
         return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10);
     }
