@@ -1,6 +1,8 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
 import com.ltc.telegrambotlinkedin.dto.gpt.GptRequestDto;
 import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
 import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
@@ -249,8 +251,6 @@ public class TelegramBotService {
             bot.sendMessage(request.getChatId(), "We will send you a message when we find a job matching your request.");
 
 
-
-//            searchJobs(user);
         } else {
             bot.sendMessage(request.getChatId(),
                     "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
