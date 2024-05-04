@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/gpt")
 public class GptController {
     @Autowired
+    public GptController(ChatGptService chatGptService) {
+        this.chatGptService = chatGptService;
+    }
+
+    @Autowired
     private ChatGptService chatGptService;
 
     //    @PostMapping
@@ -26,11 +31,25 @@ public class GptController {
 //            return false;
 //        }
 //    }
+//    @PostMapping
+//    public boolean gpt(@RequestBody GptRequestDto requestDto) {
+//        MessageResponseRoot responseRoot = chatGptService.getChat(requestDto);
+//        String response = responseRoot.getResult();
+//
+//        return response.contains("yes");
+//    }
+
+
     @PostMapping
     public boolean gpt(@RequestBody GptRequestDto requestDto) {
-        MessageResponseRoot responseRoot = chatGptService.getChat(requestDto);
-        String response = responseRoot.getResult();
+        String response = chatGptService.getChat(requestDto).getResult();
 
-        return response.contains("yes");
+        if (response.contains("yes")) {
+            return true;
+        } else {
+            return false;
+        }
+
+
     }
 }

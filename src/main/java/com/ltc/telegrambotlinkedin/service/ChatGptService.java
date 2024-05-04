@@ -5,6 +5,7 @@ import com.ltc.telegrambotlinkedin.dto.gpt.GptRequestDto;
 import com.ltc.telegrambotlinkedin.dto.others.Message;
 import com.ltc.telegrambotlinkedin.dto.others.MessageResponseRoot;
 import com.ltc.telegrambotlinkedin.dto.others.MessageRoot;
+import feign.FeignException;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,25 +23,42 @@ import java.util.List;
 public class ChatGptService {
     private final ChatGPTClient chatGPTClient;
     @Value("${gptKey}")
-    private static String gptKey;
+    private String gptKey;
     @Value("${gptHost}")
-    private static String gptHost;
+    private String gptHost;
 
 
+//    public MessageResponseRoot getChat(GptRequestDto requestDto) {
+//        String finalMessage = requestDto.finalMessage();
+//        Message message = new Message();
+//        message.setContent(finalMessage);
+//
+//
+//        MessageRoot messageRoot = new MessageRoot();
+//        messageRoot.setMessages(new ArrayList<>());
+//        messageRoot.getMessages().add(message);
+//
+//
+//        return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
+//    }
 
 
     public MessageResponseRoot getChat(GptRequestDto requestDto) {
+
         String finalMessage = requestDto.finalMessage();
         Message message = new Message();
         message.setContent(finalMessage);
-
 
         MessageRoot messageRoot = new MessageRoot();
         messageRoot.setMessages(new ArrayList<>());
         messageRoot.getMessages().add(message);
 
-
-        return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
+        try {
+            return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
+        } catch (FeignException e) {
+            log.error("Error ~~ while calling ChatGPT API: {}", e.getMessage());
+            throw new RuntimeException("Error ~~ while calling ChatGPT API", e);
+        }
     }
 
 
@@ -54,7 +72,6 @@ public class ChatGptService {
 //        messageRoot.setMessage(requestDto.finalMessage());
 //        return chatGPTClient.getMessageFeign(gptHost, gptKey, Arrays.asList(messageRoot));
 //    }
-
 
 
 //    public boolean analyzeJobAndUser(String jobDescription, List<String> userSkills) {
@@ -71,19 +88,6 @@ public class ChatGptService {
 //    }
 //
 
-
-    public List<String> analyzeJobDescription(String jobDescription) {
-        List<String> requiredSkills = new ArrayList<>();
-
-        if (jobDescription.contains("Java")) {
-            requiredSkills.add("Java");
-        }
-        if (jobDescription.contains("Python")) {
-            requiredSkills.add("Python");
-        }
-
-        return requiredSkills;
-    }
 
 //    public String getChatResponse(String message) {
 //        MessageRoot messageRoot = new MessageRoot();
