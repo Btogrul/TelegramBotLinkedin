@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class GptRequestDto {
-    private String message = ("is this user compatible with this vacancy, say yes or no : ");
+    private String message ;  //= ("is this user compatible with this vacancy, say yes or no : ")
     private UserOfBot user;
     private List<String> jobs;
 
