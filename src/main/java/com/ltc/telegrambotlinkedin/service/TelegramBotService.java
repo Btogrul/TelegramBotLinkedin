@@ -1,6 +1,11 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
+import com.ltc.telegrambotlinkedin.dto.gpt.GptRequestDto;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
+import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotUpdatesDTO;
+import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Result;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.BotUpdatesDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.Result;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
@@ -15,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Data
@@ -28,11 +34,11 @@ public class TelegramBotService {
     private final ModelMapper mpr;
     private final TelegramBotClient bot;
     private final JSearchService jSearchService;
+    private final ChatGptService chatGptService;
 
     private long lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
     private Set<String> jobsSentToUser = new HashSet<>();
-    private ChatGptService chatGptService;
 
     /**
      * Gets raw updates starting from the last update id.
@@ -240,6 +246,8 @@ public class TelegramBotService {
             user.setStage(UserStage.PROCESSED);
             userRepo.save(user);
             bot.sendMessage(request.getChatId(), "Here we go... 🚀");
+            bot.sendMessage(request.getChatId(), "We will send you a message when we find a job matching your request.");
+
 
 
 //            searchJobs(user);
@@ -248,34 +256,65 @@ public class TelegramBotService {
                     "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
         }
     }
-
-//    public void searchJobs(UserOfBot user) {
+    public void searchJobs(UserOfBot user) {
 //        String location = user.getLocation();
 //        String jobTitle = user.getJobTitle();
-//        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle());
-//
-//        ArrayList<Datum> jobList = jobs.getData();
-//
-//        if (jobList.isEmpty()) {
-//            bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
-//            return;
-//        }
-//
-//        Set<String> uniqueJobs = new HashSet<>();
-//        for (Datum job : jobList) {
-//            String jobString = job.getJob_title() + " (" + job.getEmployer_name() + ")";
-//            if (!uniqueJobs.contains(jobString)) {
-//                uniqueJobs.add(jobString);
-//                List<String> requiredSkills = chatGptService.analyzeJobDescription(job.getJob_description());
-//                if (user.getSkillSet().containsAll(requiredSkills) && user.getJobTitle().contains(jobTitle)
-//                        && user.getLocation().contains(location)) {
+        GptRequestDto gptRequestDto = new GptRequestDto();
+
+
+
+        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle());
+        ArrayList<Datum> jobList = jobs.getData();
+
+        if (jobList.isEmpty()) {
+            bot.sendMessage(user.getChatId(), "jobs not found for the given title: " + user.getJobTitle());
+            return;
+        }
+
+        Set<String> uniqueJobs = new HashSet<>();
+
+
+        for (Datum job : jobList) {
+            String jobString = job.getJob_title() + " (" + job.getEmployer_name() + ")";
+
+
+            gptRequestDto.setUser(user);
+            gptRequestDto.setJobs(jobs.getData().stream()
+                    .map(Datum::getJob_title)
+                    .collect(Collectors.toList()));
+            gptRequestDto.setMessage("is this user compatible with this vacancy, say yes or no : ");
+
+
+//            gptRequestDto.setUser(user);
+//            List<String> jobTitles = jobs.getData().stream()
+//                    .map(Datum::getJob_title)
+//                    .collect(Collectors.toList());
+//            gptRequestDto.setJobs(jobTitles);
+
+
+            if (!uniqueJobs.contains(jobString)) {
+                uniqueJobs.add(jobString);
+
+
+
+//                String requiredSkills = String.valueOf(chatGptService.getChat(gptRequestDto));
+//                String response = chatGptService.getChat(gptRequestDto).getResult();
+
+
+                if (jobsSentToUser.add(job.getJob_id())) {
+                    bot.sendMessage(user.getChatId(), "New job found: " + jobString + job.getJob_apply_link());
+                } else {
+                    bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
+                }
+
+//                if (response.contains("yes")) {
 //                    if (jobsSentToUser.add(job.getJob_id())) {
 //                        bot.sendMessage(user.getChatId(), "New job found: " + jobString);
 //                    } else {
 //                        bot.sendMessage(user.getChatId(), "Job found again: " + jobString);
 //                    }
 //                }
-//            }
-//        }
-//    }
+            }
+        }
+    }
 }
