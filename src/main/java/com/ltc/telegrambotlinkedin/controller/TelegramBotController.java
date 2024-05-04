@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TelegramBotController {
     private final TelegramBotService ts;
 
-//    @Scheduled(fixedRate = 2000)
+    @Scheduled(fixedRate = 2000)
     @GetMapping("/updates")
     void getUpdates () {
         ts.getUpdates();
