@@ -16,4 +16,7 @@ public interface UserRepository extends CrudRepository<UserOfBot, Long> {
 
     @Query(nativeQuery = true, name = "UserForJSearchDTOQuerry")
     List<UserForJSearchDTO> findProcessedUsers();
+
+    @Query("SELECT u FROM UserOfBot u WHERE u.stage = 5")
+    List<UserOfBot> findAllUsers();
 }

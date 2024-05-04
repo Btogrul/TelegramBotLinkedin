@@ -10,6 +10,4 @@ import org.springframework.stereotype.Repository;
 public interface SkillRepository extends CrudRepository<Skill, Long> {
     @Query("SELECT s FROM Skill s WHERE s.skillName = :skillName")
     Skill findSkill(@Param(value = "skillName") String skillName);
-
-
 }

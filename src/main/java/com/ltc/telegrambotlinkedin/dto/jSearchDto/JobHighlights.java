@@ -7,10 +7,10 @@ import java.util.ArrayList;
 
 @Data
 public class JobHighlights {
-    @JsonProperty("Qualifications")
+    @JsonProperty("qualifications")
     public ArrayList<String> qualifications;
-    @JsonProperty("Benefits")
+    @JsonProperty("benefits")
     public ArrayList<String> benefits;
-    @JsonProperty("Responsibilities")
+    @JsonProperty("responsibilities")
     public ArrayList<String> responsibilities;
 }

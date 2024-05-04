@@ -1,11 +1,16 @@
 package com.ltc.telegrambotlinkedin.dto.jSearchDto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class JobRequiredExperience {
-    public boolean no_experience_required;
-    public int required_experience_in_months;
-    public boolean experience_mentioned;
-    public boolean experience_preferred;
+    @JsonProperty("no_experience_required")
+    public boolean noExperienceRequired;
+    @JsonProperty("required_experience_in_months")
+    public int requiredExperienceInMonths;
+    @JsonProperty("experience_mentioned")
+    public boolean experienceMentioned;
+    @JsonProperty("experience_preferred")
+    public boolean experiencePreferred;
 }

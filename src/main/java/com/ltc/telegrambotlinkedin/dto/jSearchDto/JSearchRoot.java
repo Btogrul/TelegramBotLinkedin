@@ -1,13 +1,18 @@
 package com.ltc.telegrambotlinkedin.dto.jSearchDto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.ArrayList;
 
 @Data
 public class JSearchRoot {
+    @JsonProperty("status")
     public String status;
-    public String request_id;
+    @JsonProperty("request_id")
+    public String requestId;
+    @JsonProperty("parameters")
     public Parameters parameters;
-    public ArrayList<Datum> data;
+    @JsonProperty("data")
+    public ArrayList<Job> data;
 }
