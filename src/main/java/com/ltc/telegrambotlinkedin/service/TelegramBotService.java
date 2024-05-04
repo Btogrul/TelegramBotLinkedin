@@ -4,10 +4,6 @@ import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
 import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
 import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
 import com.ltc.telegrambotlinkedin.dto.gpt.GptRequestDto;
-import com.ltc.telegrambotlinkedin.dto.jSearchDto.Datum;
-import com.ltc.telegrambotlinkedin.dto.jSearchDto.JSearchRoot;
-import com.ltc.telegrambotlinkedin.dto.telegramBot.request.BotUpdatesDTO;
-import com.ltc.telegrambotlinkedin.dto.telegramBot.request.Result;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.BotUpdatesDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.Result;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
@@ -21,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -251,19 +248,25 @@ public class TelegramBotService {
             bot.sendMessage(request.getChatId(), "We will send you a message when we find a job matching your request.");
 
 
+            searchJobs(user);
         } else {
             bot.sendMessage(request.getChatId(),
                     "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
         }
     }
+
     public void searchJobs(UserOfBot user) {
-//        String location = user.getLocation();
-//        String jobTitle = user.getJobTitle();
+        String location = user.getUserLocation();
+        String jobTitle = user.getJobTitle();
+        String user_info = location + jobTitle;
+
         GptRequestDto gptRequestDto = new GptRequestDto();
 
 
 
-        JSearchRoot jobs = jSearchService.getJobSearchResults(user.getJobTitle());
+        JSearchRoot jobs = jSearchService.getJobSearchResults(user_info);
+
+
         ArrayList<Datum> jobList = jobs.getData();
 
         if (jobList.isEmpty()) {
@@ -294,7 +297,6 @@ public class TelegramBotService {
 
             if (!uniqueJobs.contains(jobString)) {
                 uniqueJobs.add(jobString);
-
 
 
 //                String requiredSkills = String.valueOf(chatGptService.getChat(gptRequestDto));
