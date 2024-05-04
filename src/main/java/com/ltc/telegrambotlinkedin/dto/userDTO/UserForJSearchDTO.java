@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -15,4 +17,6 @@ public class UserForJSearchDTO {
     private String jobTitle;
     @JsonProperty("user_location")
     private String location;
+    @JsonProperty("update_date")
+    private Date updateDate;
 }
