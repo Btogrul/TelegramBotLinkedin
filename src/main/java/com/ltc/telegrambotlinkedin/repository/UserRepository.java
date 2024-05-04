@@ -1,13 +1,19 @@
 package com.ltc.telegrambotlinkedin.repository;
 
+import com.ltc.telegrambotlinkedin.dto.userDTO.UserForJSearchDTO;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface UserRepository extends CrudRepository<UserOfBot, Long> {
-    @Query("SELECT u FROM UserOfBot u WHERE u.chatId = :chatId")
-    UserOfBot findUser(@Param(value = "chatId") long chatId);
+    @Query(nativeQuery = true, value = "SELECT * FROM user_of_bot u WHERE u.chat_id = :chat_id")
+    UserOfBot findUser(@Param(value = "chat_id") long chat_id);
+
+    @Query(nativeQuery = true, name = "UserForJSearchDTOQuerry")
+    List<UserForJSearchDTO> findProcessedUsers();
 }

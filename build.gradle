@@ -31,7 +31,7 @@ dependencies {
 
     implementation 'org.hibernate.orm:hibernate-core:6.5.0.CR1'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.2.4'
-    implementation 'com.h2database:h2:2.2.224'
+    implementation 'com.h2database:h2:2.2.220'
 //    implementation 'org.postgresql:postgresql:42.7.3'
 
     implementation 'org.modelmapper:modelmapper:3.2.0'

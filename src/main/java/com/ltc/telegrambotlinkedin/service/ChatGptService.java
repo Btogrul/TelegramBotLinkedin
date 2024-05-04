@@ -26,8 +26,6 @@ public class ChatGptService {
     private String gptKey;
     @Value("${gptHost}")
     private String gptHost;
-
-
 //    public MessageResponseRoot getChat(GptRequestDto requestDto) {
 //        String finalMessage = requestDto.finalMessage();
 //        Message message = new Message();
@@ -52,7 +50,6 @@ public class ChatGptService {
         MessageRoot messageRoot = new MessageRoot();
         messageRoot.setMessages(new ArrayList<>());
         messageRoot.getMessages().add(message);
-
         try {
             return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
         } catch (FeignException e) {
