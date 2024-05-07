@@ -13,14 +13,12 @@ import com.ltc.telegrambotlinkedin.repository.SkillRepository;
 import com.ltc.telegrambotlinkedin.repository.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Data
 @Service
 @RequiredArgsConstructor
@@ -76,6 +74,7 @@ public class TelegramBotService {
                 case "/start" -> createUser(request, user);
                 case "/new", "/edit" -> createUser(chatId, user);
                 case "/delete" -> deleteUser(user);
+                case null -> bot.sendMessage(chatId, "Unsupported message type!");
                 default -> processRequests(request, user);
             }
         }
@@ -157,8 +156,6 @@ public class TelegramBotService {
         user.setStage(UserStage.CONFIRM_SEARCH);
         user.setStage(UserStage.ENTERING_SKILLS);
         user = userRepo.save(user);
-        log.info(user.toString());
-        log.info("Job title set to: {}", user.getJobTitle());
         userRepo.save(user);
         bot.sendMessage(user.getChatId(), """
                 2/3 Enter your comma delimited skill set as in example:
@@ -243,11 +240,11 @@ public class TelegramBotService {
         if (jobTitle.equals(user.getJobTitle())) {
             user.setStage(UserStage.PROCESSED);
             userRepo.save(user);
-            bot.sendMessage(request.getChatId(), "Here we go... 🚀");
-            bot.sendMessage(request.getChatId(), "We will send you a message when we find a job matching your request.");
+            bot.sendMessage(request.getChatId(), """
+                    We are all set and ready to take off... 🚀
+                    I will send you all matching jobs I find every day.""");
 
-
-            searchJobs(user);
+//            searchJobs(user);
         } else {
             bot.sendMessage(request.getChatId(),
                     "Umm... Looks like there is a mistake, enter again or /edit to fix your details");

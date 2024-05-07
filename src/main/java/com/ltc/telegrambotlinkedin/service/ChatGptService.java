@@ -9,18 +9,15 @@ import com.ltc.telegrambotlinkedin.dto.others.MessageRoot;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ChatGptService {
     @Value("${gptKey}")
     private String gptKey;
@@ -61,7 +58,6 @@ public class ChatGptService {
         try {
             return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
         } catch (FeignException e) {
-            log.error("Error ~~ while calling ChatGPT API: {}", e.getMessage());
             throw new RuntimeException("Error ~~ while calling ChatGPT API", e);
         }
     }
