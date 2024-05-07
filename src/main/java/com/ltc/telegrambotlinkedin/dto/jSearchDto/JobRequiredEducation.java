@@ -1,15 +1,24 @@
 package com.ltc.telegrambotlinkedin.dto.jSearchDto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class JobRequiredEducation {
-    public boolean postgraduate_degree;
-    public boolean professional_certification;
-    public boolean high_school;
-    public boolean associates_degree;
-    public boolean bachelors_degree;
-    public boolean degree_mentioned;
-    public boolean degree_preferred;
-    public boolean professional_certification_mentioned;
+    @JsonProperty("postgraduate_degree")
+    public boolean postgraduateDegree;
+    @JsonProperty("professional_certification")
+    public boolean professionalCertification;
+    @JsonProperty("high_school")
+    public boolean highSchool;
+    @JsonProperty("associates_degree")
+    public boolean associatesDegree;
+    @JsonProperty("bachelors_degree")
+    public boolean bachelorsDegree;
+    @JsonProperty("degree_mentioned")
+    public boolean degreeMentioned;
+    @JsonProperty("degree_preferred")
+    public boolean degreePreferred;
+    @JsonProperty("professional_certification_mentioned")
+    public boolean professionalCertificationMentioned;
 }
