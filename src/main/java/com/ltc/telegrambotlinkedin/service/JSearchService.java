@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-@Slf4j
 @RequiredArgsConstructor
 @Service
 public class JSearchService {
@@ -24,7 +23,7 @@ public class JSearchService {
     private final UserRepository userRepo;
 
     public ArrayList<Job> getAllJobs(String query) {
-        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10).getData();
+        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "all").getData();
     }
 
     public ArrayList<Job> getTodaysJobs(String query) {
@@ -32,13 +31,12 @@ public class JSearchService {
     }
 
     public Map<UserOfBot, List<Job>> findJobsForUsers(List<UserOfBot> processedUsers) {
-
         HashMap<UserOfBot, List<Job>> result = new HashMap<>();
         for (UserOfBot user : processedUsers) {
 
             String query = "%s, %s".formatted(user.getJobTitle(), user.getUserLocation());
             List<Job> jobSearchResults;
-            if (user.getCreationDate().equals(user.getUpdateDate())) {
+            if (user.getUpdateDate() == null) {
                 jobSearchResults = getAllJobs(query);
             } else {
                 jobSearchResults = getTodaysJobs(query);
