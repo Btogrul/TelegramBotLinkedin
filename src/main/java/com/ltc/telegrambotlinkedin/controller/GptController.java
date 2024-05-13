@@ -21,29 +21,4 @@ public class GptController {
     @Autowired
     private ChatGptService chatGptService;
 
-    //    @PostMapping
-//    public boolean gpt(@RequestBody GptRequestDto requestDto) {
-//        MessageResponseRoot responseRoot = chatGptService.getChat(requestDto);
-//        String response = responseRoot.getResult();
-//
-//        if (response.contains("yes")) {
-//            return true;
-//        } else {
-//            return false;
-//        }
-//    }
-//    @PostMapping
-//    public boolean gpt(@RequestBody GptRequestDto requestDto) {
-//        MessageResponseRoot responseRoot = chatGptService.getChat(requestDto);
-//        String response = responseRoot.getResult();
-//
-//        return response.contains("yes");
-//    }
-
-
-//    @PostMapping
-//    public String gpt(@RequestBody MessageRoot requestDto) {
-//      return chatGptService.getClass(requestDto);
-//
-//    }
 }
