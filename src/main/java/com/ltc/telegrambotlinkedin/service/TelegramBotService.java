@@ -1,8 +1,6 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
-import com.ltc.telegrambotlinkedin.dto.jSearchDto.Job;
-import com.ltc.telegrambotlinkedin.dto.gpt.GptRequestDto;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.BotUpdatesDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.Result;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
@@ -17,7 +15,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 @Service
@@ -29,12 +26,9 @@ public class TelegramBotService {
 
     private final ModelMapper mpr;
     private final TelegramBotClient bot;
-    private final JSearchService jSearchService;
-    private final ChatGptService chatGptService;
 
     private long lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
-    private Set<String> jobsSentToUser = new HashSet<>();
 
     /**
      * Gets raw updates starting from the last update id.
@@ -97,7 +91,7 @@ public class TelegramBotService {
         }
 
         if (isNew) {
-            bot.sendMessage(chatId, "Hello %s 🤩. You are in the right place 🤖👉👉".formatted(user.getFirstName()));
+            bot.sendMessage(chatId, "Hello %s %s. You are in the right place %s".formatted(user.getFirstName(), "🤩", "🤖👉👉"));
             bot.sendMessage(chatId, "Enter the /new command to start a new job search.");
         } else {
             bot.sendMessage(chatId, """
@@ -141,7 +135,6 @@ public class TelegramBotService {
             case CONFIRM_SEARCH -> confirmJobTitleAndSearch(request, user);
             case null -> bot.sendMessage(request.getChatId(), """
                     Enter /start to get started!""");
-            default -> throw new IllegalStateException("Unexpected value: " + stage);
         }
     }
 
@@ -195,16 +188,16 @@ public class TelegramBotService {
         StringBuilder skills = new StringBuilder();
         user.getSkillSet().forEach(s -> skills.append(s.toString().indent(6)));
         bot.sendMessage(user.getChatId(), """
-                All set 🤩
-                1️⃣ Job title:
+                All set %s
+                %s Job title:
                 %s
-                2️⃣ Skill set:
+                %s Skill set:
                 %s
-                3️⃣ Location:
+                %s Location:
                 %s
-                                
+                
                 Enter job title again to confirm and start."""
-                .formatted(user.getJobTitle().indent(6), skills, user.getUserLocation().indent(6)));
+                .formatted("🤩", "1️⃣", user.getJobTitle().indent(6), "2️⃣", skills, "3️⃣", user.getUserLocation().indent(6)));
     }
 
     /**
@@ -241,14 +234,11 @@ public class TelegramBotService {
             user.setStage(UserStage.PROCESSED);
             userRepo.save(user);
             bot.sendMessage(request.getChatId(), """
-                    We are all set and ready to take off... 🚀
-                    I will send you all matching jobs I find every day.""");
-
+                    We are all set and ready to take off... %s
+                    I will send you all matching jobs I find every day.""".formatted("🚀"));
         } else {
             bot.sendMessage(request.getChatId(),
                     "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
         }
     }
-
-
 }
