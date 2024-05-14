@@ -1,5 +1,6 @@
 package com.ltc.telegrambotlinkedin.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserForJSearchDTO;
 import com.ltc.telegrambotlinkedin.enums.UserStage;
 import jakarta.persistence.*;
@@ -49,6 +50,8 @@ public class UserOfBot {
     private UserStage stage;
     @Column(name = "user_location")
     private String userLocation;
+    @Column(name = "language_code")
+    private String languageCode;
 
 
     @CreationTimestamp

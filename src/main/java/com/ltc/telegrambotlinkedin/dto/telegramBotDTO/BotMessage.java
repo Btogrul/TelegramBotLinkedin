@@ -1,4 +1,4 @@
-package com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request;
+package com.ltc.telegrambotlinkedin.dto.telegramBotDTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

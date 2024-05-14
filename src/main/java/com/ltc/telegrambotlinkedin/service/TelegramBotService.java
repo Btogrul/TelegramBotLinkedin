@@ -1,8 +1,8 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
-import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.BotUpdatesDTO;
-import com.ltc.telegrambotlinkedin.dto.telegramBotDTOs.request.Result;
+import com.ltc.telegrambotlinkedin.dto.telegramBotDTO.BotUpdatesDTO;
+import com.ltc.telegrambotlinkedin.dto.telegramBotDTO.Result;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
 import com.ltc.telegrambotlinkedin.entity.Skill;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
@@ -11,14 +11,17 @@ import com.ltc.telegrambotlinkedin.repository.SkillRepository;
 import com.ltc.telegrambotlinkedin.repository.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
+@RequiredArgsConstructor
 @Data
 @Service
-@RequiredArgsConstructor
 public class TelegramBotService {
 
     private final UserRepository userRepo;
@@ -29,6 +32,23 @@ public class TelegramBotService {
 
     private long lastUpdateId;
     private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
+
+    private final MessageSource messageSource;
+
+    public String getLocalizedMessage (String string, UserRequestDTO request) {
+        String language = request.getLanguageCode();
+        log.info(language);
+        Locale lang = switch (language) {
+            case "az" -> Locale.forLanguageTag("az-Latn-AZ");
+            case "ru" -> Locale.forLanguageTag("ru-RU");
+            case null -> Locale.getDefault();
+            default -> Locale.ENGLISH;
+        };
+        log.info(lang.getCountry());
+        String message = messageSource.getMessage(string, null, lang);
+        log.info(message);
+        return message;
+    }
 
     /**
      * Gets raw updates starting from the last update id.
@@ -68,7 +88,7 @@ public class TelegramBotService {
                 case "/start" -> createUser(request, user);
                 case "/new", "/edit" -> createUser(chatId, user);
                 case "/delete" -> deleteUser(user);
-                case null -> bot.sendMessage(chatId, "Unsupported message type!");
+                case null -> bot.sendMessage(chatId, getLocalizedMessage("wrongMessage", request));
                 default -> processRequests(request, user);
             }
         }
@@ -91,12 +111,10 @@ public class TelegramBotService {
         }
 
         if (isNew) {
-            bot.sendMessage(chatId, "Hello %s %s. You are in the right place %s".formatted(user.getFirstName(), "🤩", "🤖👉👉"));
-            bot.sendMessage(chatId, "Enter the /new command to start a new job search.");
+            bot.sendMessage(chatId, getLocalizedMessage("sendGreeting", request).formatted(user.getFirstName(), "🤩", "🤖👉👉"));
+            bot.sendMessage(chatId, getLocalizedMessage("enterNewCommand", request));
         } else {
-            bot.sendMessage(chatId, """
-                    To start a new job search, choose the /new command.
-                    If you need to edit your current job search, choose /edit command.""");
+            bot.sendMessage(chatId, getLocalizedMessage("enterNewCommand", request) + "\n" + getLocalizedMessage("enterEditCommand", request));
         }
     }
 
@@ -111,7 +129,7 @@ public class TelegramBotService {
         if (user != null) {
             user.setStage(UserStage.ENTERING_TITLE);
             userRepo.save(user);
-            bot.sendMessage(user.getChatId(), "1/3 Enter the title of the job you want to apply to.");
+            bot.sendMessage(user.getChatId(), getLocalizedMessage("enterJobTitle", new UserRequestDTO()));
         } else {
             bot.sendMessage(chatId, "To start a new job search, choose the /new command.");
         }
