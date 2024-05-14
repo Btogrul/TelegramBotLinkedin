@@ -7,17 +7,16 @@ import com.ltc.telegrambotlinkedin.dto.others.Message;
 import com.ltc.telegrambotlinkedin.dto.others.MessageResponseRoot;
 import com.ltc.telegrambotlinkedin.dto.others.MessageRoot;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatGptService {
     @Value("${gptKey}")
     private String gptKey;
@@ -26,85 +25,50 @@ public class ChatGptService {
 
     private final ChatGPTClient chatGPTClient;
 
-    public Map<UserOfBot, List<Job>> analyzeResults (Map<UserOfBot, List<Job>> foundJobs) {
-        return foundJobs;
-    }
+    public Map<UserOfBot, List<Job>> analyzeResults(Map<UserOfBot, List<Job>> foundJobs) {
+        Map<UserOfBot, List<Job>> compatibleJobs = new HashMap<>();
+
+        for (Map.Entry<UserOfBot, List<Job>> entry : foundJobs.entrySet()) {
+            UserOfBot user = entry.getKey();
+            List<Job> jobs = entry.getValue();
+
+            List<Job> selectedJobs = new ArrayList<>();
+            int limit = Math.min(jobs.size(), 5);
+            for (int i = 0; i < limit; i++) {
+                selectedJobs.add(jobs.get(i));
+            }
+
+            GptRequestDto gptRequestDto = new GptRequestDto();
+            gptRequestDto.setMessage("Is this user at least 1 skill compatible with this vacancy? Please respond with 'yes' or 'no' : ");
+            gptRequestDto.setUser(user);
+            gptRequestDto.setJobs(selectedJobs);
 
 
-//    public MessageResponseRoot getChat(GptRequestDto requestDto) {
-//        String finalMessage = requestDto.finalMessage();
-//        Message message = new Message();
-//        message.setContent(finalMessage);
-//
-//
-//        MessageRoot messageRoot = new MessageRoot();
-//        messageRoot.setMessages(new ArrayList<>());
-//        messageRoot.getMessages().add(message);
-//
-//
-//        return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
-//    }
+            MessageRoot newMessage = new MessageRoot();
 
+            ArrayList<Message> messages = new ArrayList<>();
+            messages.add(Message.builder().content(gptRequestDto.toString()).build());
 
-    public MessageResponseRoot getChat(GptRequestDto requestDto) {
+            newMessage.messages = messages;
 
-        String finalMessage = requestDto.finalMessage();
-        Message message = new Message();
-        message.setContent(finalMessage);
+            MessageResponseRoot response = chatGPTClient.getMessageFeign(gptHost, gptKey, newMessage);
 
-        MessageRoot messageRoot = new MessageRoot();
-        messageRoot.setMessages(new ArrayList<>());
-        messageRoot.getMessages().add(message);
-        try {
-            return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
-        } catch (FeignException e) {
-            throw new RuntimeException("Error ~~ while calling ChatGPT API", e);
+            if (response.getResult().equalsIgnoreCase("yes")) {
+                compatibleJobs.put(user, selectedJobs);
+                log.info("Job added");
+            } else {
+                log.info("Nuh uh");
+            }
         }
+
+        return compatibleJobs;
     }
 
 
-//    public MessageResponseRoot getChat(@RequestBody List<MessageRoot> messageRoot) {
-//        return chatGPTClient.getMessageFeign(gptHost, gptKey, messageRoot);
-//    }
-//
-//
-//    public MessageResponseRoot getChat(GptRequestDto requestDto) {
-//        MessageRoot messageRoot = new MessageRoot();
-//        messageRoot.setMessage(requestDto.finalMessage());
-//        return chatGPTClient.getMessageFeign(gptHost, gptKey, Arrays.asList(messageRoot));
-//    }
 
 
-//    public boolean analyzeJobAndUser(String jobDescription, List<String> userSkills) {
-
-//        Gpt4Request request = new Gpt4Request(jobDescription, userSkills);
-//
-//
-//        Gpt4Response response = gpt4Service.analyze(request);
-//
-//
-//        boolean isJobSuitable = response.isJobSuitable();
-//
-//        return isJobSuitable;
-//    }
-//
 
 
-//    public String getChatResponse(String message) {
-//        MessageRoot messageRoot = new MessageRoot();
-//        messageRoot.setMessages(Arrays.asList(
-//                new Message(message)
-//        ));
-//
-//        MessageGPT responseRoot = chatGPTClient.getMessageFeign(gptKey, gptHost, messageRoot);
-//        String response = responseRoot.getChoices().get(0).getClass().get().getText();
-//        return response;
-//    }
 
-//    MessageRoot root;
-//
-//    public MessageResponseRoot getChat(){
-//      return  chatGPTClient.getMessageFeign(key, host, root);
-//    };
 
 }

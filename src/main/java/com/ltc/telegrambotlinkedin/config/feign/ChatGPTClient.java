@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(name = "chatGPT", url = "https://chatgpt-42.p.rapidapi.com/")
 public interface ChatGPTClient {
 
-    @PostMapping("conversationgpt4")
+    @PostMapping("gpt4")
     MessageResponseRoot getMessageFeign(@RequestHeader(name = "X-RapidAPI-Host") String host,
                                         @RequestHeader(name = "X-RapidAPI-Key") String key,
                                         @RequestBody MessageRoot root);

@@ -45,7 +45,6 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
-
 }
 
 tasks.named('test') {

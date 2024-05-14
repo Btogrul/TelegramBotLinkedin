@@ -1,5 +1,6 @@
 package com.ltc.telegrambotlinkedin.dto.gpt;
 
+import com.ltc.telegrambotlinkedin.dto.jSearchDto.Job;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import lombok.Data;
 
@@ -9,7 +10,7 @@ import java.util.List;
 public class GptRequestDto {
     private String message ;  //= ("is this user compatible with this vacancy, say yes or no : ")
     private UserOfBot user;
-    private List<String> jobs;
+    private List<Job> jobs;
 
     public String finalMessage() {
         return message +  " user skills :  " + user.getSkillSet() +
