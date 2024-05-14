@@ -15,10 +15,12 @@ public class UserRequestDTO {
     private String firstName;
     @JsonProperty("lastName")
     private String lastName;
+    @JsonProperty("language_code")
+    private String languageCode;
 
     @Override
     public String toString() {
         return "date= " + date + " || chatId= " + chatId +
-                " || " + firstName + " " + lastName + " : " + text;
+                " || " + firstName + " " + lastName + " :[" + languageCode + "] " + text;
     }
 }
