@@ -1,6 +1,5 @@
 package com.ltc.telegrambotlinkedin.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ltc.telegrambotlinkedin.dto.userDTO.UserForJSearchDTO;
 import com.ltc.telegrambotlinkedin.enums.UserStage;
 import jakarta.persistence.*;
@@ -9,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 @SqlResultSetMapping(
         name = "UserForJSearchDTOMapping",
@@ -50,9 +50,8 @@ public class UserOfBot {
     private UserStage stage;
     @Column(name = "user_location")
     private String userLocation;
-    @Column(name = "language_code")
-    private String languageCode;
-
+    @Column(name = "user_locale")
+    private Locale userLocale;
 
     @CreationTimestamp
     @Column(name = "creation_date")
