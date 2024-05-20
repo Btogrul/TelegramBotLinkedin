@@ -258,4 +258,18 @@ public class TelegramBotService {
     public void deleteUser(UserOfBot user) {
         if (user != null) userRepo.delete(user);
     }
+                            
+    public void confirmJobTitleAndSearch(UserRequestDTO request, UserOfBot user) {
+        String jobTitle = request.getText();
+        if (jobTitle.equalsIgnoreCase(user.getJobTitle())) {
+            user.setStage(UserStage.PROCESSED);
+            userRepo.save(user);
+            bot.sendMessage(request.getChatId(), """
+                    We are all set and ready to take off... %s
+                    I will send you all matching jobs I find every day.""".formatted("🚀"));
+        } else {
+            bot.sendMessage(request.getChatId(),
+                    "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
+        }
+    }
 }
