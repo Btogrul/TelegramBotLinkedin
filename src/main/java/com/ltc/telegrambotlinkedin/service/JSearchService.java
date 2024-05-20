@@ -21,12 +21,12 @@ public class JSearchService {
     private final JSearchClient jSearchClient;
     private final UserRepository userRepo;
 
-    public ArrayList<Job> getAllJobs(String query) {
-        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "all").getData();
+    public ArrayList<Job> getAllJobs(String query, Boolean isRemote) {
+        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "all", isRemote).getData();
     }
 
-    public ArrayList<Job> getTodaysJobs(String query) {
-        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "today").getData();
+    public ArrayList<Job> getTodaysJobs(String query, Boolean isRemote) {
+        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "today" , isRemote).getData();
     }
 
     public Map<UserOfBot, List<Job>> findJobsForUsers(List<UserOfBot> processedUsers) {
@@ -34,11 +34,19 @@ public class JSearchService {
         for (UserOfBot user : processedUsers) {
 
             String query = "%s, %s".formatted(user.getJobTitle(), user.getUserLocation());
+            Boolean remote;
+            if (user.getRemoteJob().equalsIgnoreCase("remote")) {
+                remote = true;
+            } else if (user.getRemoteJob().equalsIgnoreCase("office")) {
+                remote = false;
+            } else {
+                remote = null;
+            }
             List<Job> jobSearchResults;
             if (user.getUpdateDate() == null) {
-                jobSearchResults = getAllJobs(query);
+                jobSearchResults = getAllJobs(query, remote);
             } else {
-                jobSearchResults = getTodaysJobs(query);
+                jobSearchResults = getTodaysJobs(query, remote);
             }
             user.setUpdateDate(new Date());
             result.put(userRepo.save(user), jobSearchResults);

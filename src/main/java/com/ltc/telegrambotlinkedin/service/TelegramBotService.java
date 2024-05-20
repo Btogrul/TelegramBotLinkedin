@@ -157,6 +157,7 @@ public class TelegramBotService {
                             getLocalizedMessage("enterEditCommand", user));
             case ENTERING_TITLE -> jobTitleSetter(request, user);
             case ENTERING_SKILLS -> skillSetSetter(request, user);
+            case ENTERING_REMOTE -> jobRemoteSetter(request,user);
             case ENTERING_LOCATION -> locationSetter(request, user);
             case CONFIRM_SEARCH -> confirmJobTitleAndSearch(request, user);
             case null -> bot.sendMessage(request.getChatId(), getLocalizedMessage("enterStartCommand", user));
@@ -171,11 +172,20 @@ public class TelegramBotService {
      */
     public void jobTitleSetter(UserRequestDTO request, UserOfBot user) {
         user.setJobTitle(request.getText().toLowerCase());
-        user.setStage(UserStage.CONFIRM_SEARCH);
         user.setStage(UserStage.ENTERING_SKILLS);
+
+
         user = userRepo.save(user);
         userRepo.save(user);
         bot.sendMessage(user.getChatId(), getLocalizedMessage("enterSkills", user));
+    }
+
+
+    public void jobRemoteSetter(UserRequestDTO request, UserOfBot user){
+        user.setRemoteJob(request.getText());
+        user.setStage(UserStage.ENTERING_LOCATION);
+        userRepo.save(user);
+        bot.sendMessage(user.getChatId(), getLocalizedMessage("enterLocation", user));
     }
 
     /**
@@ -190,10 +200,11 @@ public class TelegramBotService {
         List<Skill> skillSet = findOrCreateSkills(skills);
 
         user.setSkillSet(skillSet);
-        user.setStage(UserStage.ENTERING_LOCATION);
+        user.setStage(UserStage.ENTERING_REMOTE);
+
         userRepo.save(user);
 
-        bot.sendMessage(user.getChatId(), getLocalizedMessage("enterLocation", user));
+        bot.sendMessage(user.getChatId(), getLocalizedMessage("enterRemote", user));
     }
 
     /**
@@ -210,7 +221,7 @@ public class TelegramBotService {
         StringBuilder skills = new StringBuilder();
         user.getSkillSet().forEach(s -> skills.append(s.toString().indent(6)));
         bot.sendMessage(user.getChatId(), getLocalizedMessage("doubleCheck", user)
-                .formatted(user.getJobTitle().indent(6), skills, user.getUserLocation().indent(6)));
+                .formatted(user.getJobTitle().indent(6), skills, user.getRemoteJob() , user.getUserLocation().indent(6)));
     }
 
     /**
@@ -258,18 +269,5 @@ public class TelegramBotService {
     public void deleteUser(UserOfBot user) {
         if (user != null) userRepo.delete(user);
     }
-                            
-    public void confirmJobTitleAndSearch(UserRequestDTO request, UserOfBot user) {
-        String jobTitle = request.getText();
-        if (jobTitle.equalsIgnoreCase(user.getJobTitle())) {
-            user.setStage(UserStage.PROCESSED);
-            userRepo.save(user);
-            bot.sendMessage(request.getChatId(), """
-                    We are all set and ready to take off... %s
-                    I will send you all matching jobs I find every day.""".formatted("🚀"));
-        } else {
-            bot.sendMessage(request.getChatId(),
-                    "Umm... Looks like there is a mistake, enter again or /edit to fix your details");
-        }
-    }
+
 }

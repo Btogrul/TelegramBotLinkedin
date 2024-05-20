@@ -22,5 +22,6 @@ public interface JSearchClient {
                           @RequestParam("query") String query,
                           @RequestParam("page") Integer page,
                           @RequestParam("numPages") Integer pages,
-                          @RequestParam("date_posted") String datePosted);
+                          @RequestParam("date_posted") String datePosted,
+                          @RequestParam("remote_jobs_only") Boolean remoteJobs);
 }
