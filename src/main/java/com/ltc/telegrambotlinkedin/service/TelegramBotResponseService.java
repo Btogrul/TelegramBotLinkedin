@@ -22,7 +22,8 @@ public class TelegramBotResponseService {
     private final ChatGptService chatGptService;
     private final TelegramBotClient bot;
 
-    @Scheduled(cron = "0 55 23 * * *")
+//    @Scheduled(cron = "0 55 23 * * *")
+    @Scheduled(fixedRate = 3000)
     public void sendMessages() {
         List<UserOfBot> processed = userRepo.findAllUsers();
         Map<UserOfBot, List<Job>> results = jSearchService.findJobsForUsers(processed);
