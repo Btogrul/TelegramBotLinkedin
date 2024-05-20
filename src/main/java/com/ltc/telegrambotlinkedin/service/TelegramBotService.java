@@ -248,7 +248,7 @@ public class TelegramBotService {
 
     public void confirmJobTitleAndSearch(UserRequestDTO request, UserOfBot user) {
         String jobTitle = request.getText();
-        if (jobTitle.equals(user.getJobTitle())) {
+        if (jobTitle.equalsIgnoreCase(user.getJobTitle())) {
             user.setStage(UserStage.PROCESSED);
             userRepo.save(user);
             bot.sendMessage(request.getChatId(), """
