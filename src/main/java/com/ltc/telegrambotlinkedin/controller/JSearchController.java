@@ -19,8 +19,8 @@ public class JSearchController {
     private final JSearchService jSearchService;
 
     @GetMapping("/getJob")
-    public ArrayList<Job> getJob (@RequestParam(name = "query") String query) {
-        return jSearchService.getAllJobs(query);
+    public ArrayList<Job> getJob (@RequestParam(name = "query") String query, @RequestParam (name= "remote_jobs_only") Boolean isRemote) {
+        return jSearchService.getAllJobs(query, isRemote);
     }
 
     @GetMapping("/getUsers")
