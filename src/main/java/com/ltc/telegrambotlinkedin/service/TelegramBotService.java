@@ -106,24 +106,26 @@ public class TelegramBotService {
     public void setUserLanguage(UserRequestDTO request, UserOfBot user) {
         long chatId = request.getChatId();
         if (user == null) {
-            bot.sendMessage(chatId, getLocalizedMessage("enterStartCommand", user));
-        }
-        String lang = request.getText();
-        user.setUserLocale(switch (lang) {
-            case "/aze" -> Locale.forLanguageTag("az-Latn-AZ");
-            case "/rus" -> Locale.forLanguageTag("ru-RU");
-            case null, default -> Locale.ENGLISH;
-        });
-        userRepo.save(user);
-        bot.sendMessage(chatId, getLocalizedMessage("languageIsSet", user));
-        if (user.getStage() == UserStage.CREATED) {
-            bot.sendMessage(chatId, getLocalizedMessage("sendGreeting", user).formatted(user.getFirstName()));
-            bot.sendMessage(chatId, getLocalizedMessage("enterNewCommand", user));
+            bot.sendMessage(chatId, getLocalizedMessage("enterStartCommand", null));
+        } else {
+            String lang = request.getText();
+            user.setUserLocale(switch (lang) {
+                case "/aze" -> Locale.forLanguageTag("az-Latn-AZ");
+                case "/rus" -> Locale.forLanguageTag("ru-RU");
+                case null, default -> Locale.ENGLISH;
+            });
+            userRepo.save(user);
+            bot.sendMessage(chatId, getLocalizedMessage("languageIsSet", user));
+            if (user.getStage() == UserStage.CREATED) {
+                bot.sendMessage(chatId, getLocalizedMessage("sendGreeting", user).formatted(user.getFirstName()));
+                bot.sendMessage(chatId, getLocalizedMessage("enterNewCommand", user));
+            }
         }
     }
 
     public String getLocalizedMessage(String string, UserOfBot user) {
-        Locale locale = user.getUserLocale() != null ? user.getUserLocale() : Locale.ENGLISH;
+        Locale locale = user == null ? Locale.ENGLISH : user.getUserLocale();
+        locale = locale == null ? Locale.ENGLISH : locale;
         return messageSource.getMessage(string, null, locale);
     }
 
@@ -140,7 +142,7 @@ public class TelegramBotService {
             userRepo.save(user);
             bot.sendMessage(user.getChatId(), getLocalizedMessage("enterJobTitle", user));
         } else {
-            bot.sendMessage(chatId, getLocalizedMessage("enterNewCommand", user));
+            bot.sendMessage(chatId, getLocalizedMessage("enterStartCommand", null));
         }
     }
 
@@ -174,8 +176,6 @@ public class TelegramBotService {
     public void jobTitleSetter(UserRequestDTO request, UserOfBot user) {
         user.setJobTitle(request.getText().toLowerCase());
         user.setStage(UserStage.ENTERING_SKILLS);
-
-
         user = userRepo.save(user);
         userRepo.save(user);
         bot.sendMessage(user.getChatId(), getLocalizedMessage("enterSkills", user));
@@ -202,7 +202,6 @@ public class TelegramBotService {
 
         user.setSkillSet(skillSet);
         user.setStage(UserStage.ENTERING_REMOTE);
-
         userRepo.save(user);
 
         bot.sendMessage(user.getChatId(), getLocalizedMessage("enterRemote", user));

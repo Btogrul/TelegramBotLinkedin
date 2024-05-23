@@ -12,9 +12,6 @@ public class Skill {
     private long id;
     private String skillName;
 
-//    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
-//    private List<UserOfBot> users;
-
     @Override
     public String toString() {
         return skillName;
