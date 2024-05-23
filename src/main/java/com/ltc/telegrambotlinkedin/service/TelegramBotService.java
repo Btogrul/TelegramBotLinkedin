@@ -24,7 +24,7 @@ import java.util.*;
 @Service
 public class TelegramBotService {
 
-    // just for checking -- comment  for testing something in github
+
     private final UserRepository userRepo;
     private final SkillRepository skillRepo;
 
