@@ -11,27 +11,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-@SqlResultSetMapping(
-        name = "UserForJSearchDTOMapping",
-        classes = @ConstructorResult(
-                targetClass = UserForJSearchDTO.class,
-                columns = {
-                        @ColumnResult(name = "userId", type = Long.class),
-                        @ColumnResult(name = "jobTitle", type = String.class),
-                        @ColumnResult(name = "userLocation", type = String.class),
-                        @ColumnResult(name = "updateDate", type = Date.class)
-                }
-        )
-)
-@NamedNativeQuery(
-        name = "UserForJSearchDTOQuerry",
-        resultSetMapping = "UserForJSearchDTOMapping",
-        query = "SELECT id as userId, job_title as jobTitle, user_location as userLocation, update_date as updateDate FROM user_of_bot u WHERE u.stage = 5"
-)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
 @Entity
 @Table(name = "user_of_bot")
 public class UserOfBot {

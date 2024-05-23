@@ -1,7 +1,7 @@
 package com.ltc.telegrambotlinkedin.config.feign;
 
-import com.ltc.telegrambotlinkedin.dto.others.MessageResponseRoot;
-import com.ltc.telegrambotlinkedin.dto.others.MessageRoot;
+import com.ltc.telegrambotlinkedin.dto.gpt.MessageResponseRoot;
+import com.ltc.telegrambotlinkedin.dto.gpt.MessageRoot;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
