@@ -73,7 +73,7 @@ public class TelegramBotService {
             switch (text) {
                 case "/start" -> createUser(request, user);
                 case "/new", "/edit" -> createJobSearch(chatId, user);
-                case "/delete" -> deleteUser(user);
+                case "/delete" -> deleteUser(chatId, user);
                 case "/aze", "/rus", "/eng" -> setUserLanguage(request, user);
                 case null -> bot.sendMessage(chatId, getLocalizedMessage("wrongMessage", user));
                 default -> processRequests(request, user);
@@ -83,7 +83,6 @@ public class TelegramBotService {
 
     /**
      * Method works if user sent /start command for the first time or deleted all records previously.
-     *
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
@@ -103,6 +102,12 @@ public class TelegramBotService {
         }
     }
 
+    /**
+     * Method works if the user sent /aze, /rus, /eng commands.
+     * It sets the preferred language of the user to chosen language.
+     * @param request - contains all useful data about the user.
+     * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     */
     public void setUserLanguage(UserRequestDTO request, UserOfBot user) {
         long chatId = request.getChatId();
         if (user == null) {
@@ -123,18 +128,24 @@ public class TelegramBotService {
         }
     }
 
-    public String getLocalizedMessage(String string, UserOfBot user) {
+    /**
+     * The method acquires the user locale, if not present uses default locale.
+     * It then provides localized message to be sent by the bot.
+     * @param message - is the key of the message to be sent to the user.
+     * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     * @return        - the localized message value is returned.
+     */
+    public String getLocalizedMessage(String message, UserOfBot user) {
         Locale locale = user == null ? Locale.ENGLISH : user.getUserLocale();
         locale = locale == null ? Locale.ENGLISH : locale;
-        return messageSource.getMessage(string, null, locale);
+        return messageSource.getMessage(message, null, locale);
     }
 
     /**
      * The method works if user sent /new or /edit commands.
-     * The method sets the user stage to ENTERING_JOB if user is already in database.
+     * The method sets the user stage to ENTERING_TITLE if user is already in database.
      * This method helps program to know that the next request is going to be a job title.
-     *
-     * @param user - contains all useful data about the user.
+     * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
     public void createJobSearch(long chatId, UserOfBot user) {
         if (user != null) {
@@ -148,7 +159,6 @@ public class TelegramBotService {
 
     /**
      * This method processes requests based on the stage of the user.
-     *
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
@@ -169,7 +179,6 @@ public class TelegramBotService {
 
     /**
      * The method sets the title of the job and puts the user in ENTERING_SKILLS stage to process furthermore.
-     *
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
@@ -181,17 +190,8 @@ public class TelegramBotService {
         bot.sendMessage(user.getChatId(), getLocalizedMessage("enterSkills", user));
     }
 
-
-    public void jobRemoteSetter(UserRequestDTO request, UserOfBot user){
-        user.setRemoteJob(request.getText());
-        user.setStage(UserStage.ENTERING_LOCATION);
-        userRepo.save(user);
-        bot.sendMessage(user.getChatId(), getLocalizedMessage("enterLocation", user));
-    }
-
     /**
      * The method sets the skill set of the user and puts the user in ENTERING_LOCATION stage to process furthermore.
-     *
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
@@ -208,8 +208,21 @@ public class TelegramBotService {
     }
 
     /**
-     * The method sets the location of the user and puts the user in CONFIRM_SEARCH stage to process furthermore.
-     *
+     * The method sets onlyRemote to true if user wants only remote jobs,
+     * otherwise to false if user wants any kind of job.
+     * At the end it puts the user in CONFIRM_SEARCH stage to process furthermore.
+     * @param request - contains all useful data about the user.
+     * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
+     */
+    public void jobRemoteSetter(UserRequestDTO request, UserOfBot user) {
+        user.setOnlyRemote(request.getText().equals("/Y"));
+        user.setStage(UserStage.ENTERING_LOCATION);
+        userRepo.save(user);
+        bot.sendMessage(user.getChatId(), getLocalizedMessage("enterLocation", user));
+    }
+
+    /**
+     * The method sets the location of the user and puts the user in ENTERING_REMOTE stage to process furthermore.
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
@@ -218,16 +231,16 @@ public class TelegramBotService {
         user.setUserLocation(location);
         user.setStage(UserStage.CONFIRM_SEARCH);
         userRepo.save(user);
+
         StringBuilder skills = new StringBuilder();
         user.getSkillSet().forEach(s -> skills.append(s.toString().indent(6)));
         bot.sendMessage(user.getChatId(), getLocalizedMessage("doubleCheck", user)
-                .formatted(user.getJobTitle().indent(6), skills, user.getRemoteJob() , user.getUserLocation().indent(6)));
+                .formatted(user.getJobTitle().indent(6), skills, user.isOnlyRemote() ? "✅".indent(6) : "❌".indent(6), user.getUserLocation().indent(6)));
     }
 
     /**
      * The method checks if user passed double check successfully. If passed finishes the processing.
      * If not passed, asks user to try again or edit his/her details in case of wrong data found.
-     *
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
@@ -244,7 +257,6 @@ public class TelegramBotService {
 
     /**
      * This method searches in the database for skills provided by user. If it finds retrieves them or creates them.
-     *
      * @param skills - a set of Strings representing the skills that user entered.
      * @return - returns a List of Skill entities that are found or created.
      */
@@ -263,11 +275,14 @@ public class TelegramBotService {
 
     /**
      * Deletes the record related to the user.
-     *
+     * @param chatId - is the chat ID of the sender.
      * @param user - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void deleteUser(UserOfBot user) {
-        if (user != null) userRepo.delete(user);
+    public void deleteUser(long chatId, UserOfBot user) {
+        if (user != null) {
+            userRepo.delete(user);
+        } else {
+            bot.sendMessage(chatId, getLocalizedMessage("enterStartCommand", null));
+        }
     }
-
 }
