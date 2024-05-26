@@ -23,18 +23,20 @@ public class TelegramBotResponseService {
     private final TelegramBotClient bot;
 
 //    @Scheduled(cron = "0 55 23 * * *")
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 5000)
     public void sendMessages() {
         List<UserOfBot> processed = userRepo.findAllUsers();
-        Map<UserOfBot, List<Job>> results = jSearchService.findJobsForUsers(processed);
-        results = chatGptService.analyzeResults(results);
+        if (!processed.isEmpty()) {
+            Map<UserOfBot, List<Job>> results = jSearchService.findJobsForUsers(processed);
+            results = chatGptService.analyzeResults(results);
 
-        for (Map.Entry<UserOfBot, List<Job>> entry : results.entrySet()) {
-            long chatId = entry.getKey().getChatId();
-            List<Job> jobs = entry.getValue();
-            for (Job job : jobs) {
-                String jobApplyLink = job.getJobApplyLink();
-                bot.sendMessage(chatId, "A new vacancy 🤩 %n%s".formatted(jobApplyLink));
+            for (Map.Entry<UserOfBot, List<Job>> entry : results.entrySet()) {
+                long chatId = entry.getKey().getChatId();
+                List<Job> jobs = entry.getValue();
+                for (Job job : jobs) {
+                    String jobApplyLink = job.getJobApplyLink();
+                    bot.sendMessage(chatId, "A new vacancy 🤩 %n%s".formatted(jobApplyLink));
+                }
             }
         }
     }

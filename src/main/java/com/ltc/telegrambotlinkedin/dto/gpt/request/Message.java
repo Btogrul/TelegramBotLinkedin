@@ -1,4 +1,4 @@
-package com.ltc.telegrambotlinkedin.dto.gpt;
+package com.ltc.telegrambotlinkedin.dto.gpt.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 public class Message {
-
-    public final String role = "user";
-    public String content;
-
+    private final String role = "user";
+    private String content;
 }

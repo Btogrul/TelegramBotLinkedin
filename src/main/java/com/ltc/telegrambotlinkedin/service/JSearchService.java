@@ -5,11 +5,13 @@ import com.ltc.telegrambotlinkedin.dto.jSearchDto.Job;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import com.ltc.telegrambotlinkedin.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class JSearchService {
@@ -26,7 +28,7 @@ public class JSearchService {
     }
 
     public ArrayList<Job> getTodaysJobs(String query, Boolean isRemote) {
-        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "today" , isRemote).getData();
+        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "today", isRemote).getData();
     }
 
     public Map<UserOfBot, List<Job>> findJobsForUsers(List<UserOfBot> processedUsers) {
@@ -34,25 +36,20 @@ public class JSearchService {
         for (UserOfBot user : processedUsers) {
 
             String query = "%s, %s".formatted(user.getJobTitle(), user.getUserLocation());
-            Boolean remote;
-            if (user.getRemoteJob().equalsIgnoreCase("remote")) {
-                remote = true;
-            } else if (user.getRemoteJob().equalsIgnoreCase("office")) {
-                remote = false;
-            } else {
-                remote = null;
-            }
-            List<Job> jobSearchResults;
+            boolean remote = user.isOnlyRemote();
+            List<Job> jobSearchResults = new ArrayList<>();
+
             if (user.getUpdateDate() == null) {
                 jobSearchResults = getAllJobs(query, remote);
-            } else {
+                user.setUpdateDate(new Date());
+            } else if (new Date().getTime() - user.getUpdateDate().getTime() > 86400){
                 jobSearchResults = getTodaysJobs(query, remote);
+                user.setUpdateDate(new Date());
             }
-            user.setUpdateDate(new Date());
-            result.put(userRepo.save(user), jobSearchResults);
 
+            user = userRepo.save(user);
+            result.put(user, jobSearchResults);
         }
         return result;
-
     }
 }

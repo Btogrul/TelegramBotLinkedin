@@ -1,7 +1,5 @@
 package com.ltc.telegrambotlinkedin.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ltc.telegrambotlinkedin.dto.userDTO.UserForJSearchDTO;
 import com.ltc.telegrambotlinkedin.enums.UserStage;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,8 +33,8 @@ public class UserOfBot {
     private String userLocation;
     @Column(name = "user_locale")
     private Locale userLocale;
-    @Column(name = "remote_job")
-    private String remoteJob;
+    @Column(name = "only_remote")
+    private boolean onlyRemote;
 
     @CreationTimestamp
     @Column(name = "creation_date")
