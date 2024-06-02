@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("bot")
+@RequestMapping("api/bot")
 public class TelegramBotController {
     private final TelegramBotService ts;
 
