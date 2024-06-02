@@ -17,13 +17,12 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(Customizer.withDefaults())
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers(HttpMethod.GET)
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.GET, "/api/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();
-        return http.build();
+        return http.getOrBuild();
     }
 }
