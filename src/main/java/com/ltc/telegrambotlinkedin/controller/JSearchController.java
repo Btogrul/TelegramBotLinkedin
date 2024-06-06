@@ -12,7 +12,7 @@ import java.util.*;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/job")
+@RequestMapping("api/jSearch")
 public class JSearchController {
     private final JSearchService jSearchService;
 

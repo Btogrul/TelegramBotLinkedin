@@ -18,7 +18,7 @@ import java.util.*;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/gpt")
+@RequestMapping("api/gpt")
 public class GptController {
 
     private final ChatGPTClient chatGPTClient;
