@@ -3,7 +3,7 @@ package com.ltc.telegrambotlinkedin.service;
 import com.ltc.telegrambotlinkedin.config.feign.TelegramBotClient;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTO.BotUpdatesDTO;
 import com.ltc.telegrambotlinkedin.dto.telegramBotDTO.Result;
-import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequestDTO;
+import com.ltc.telegrambotlinkedin.dto.userDTO.UserRequest;
 import com.ltc.telegrambotlinkedin.entity.Skill;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import com.ltc.telegrambotlinkedin.enums.UserStage;
@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -24,7 +25,6 @@ import java.util.*;
 @Service
 public class TelegramBotService {
 
-
     private final UserRepository userRepo;
     private final SkillRepository skillRepo;
 
@@ -32,7 +32,7 @@ public class TelegramBotService {
     private final TelegramBotClient bot;
 
     private long lastUpdateId;
-    private final ArrayDeque<UserRequestDTO> queue = new ArrayDeque<>();
+    private final ArrayDeque<UserRequest> queue = new ArrayDeque<>();
 
     private final MessageSource messageSource;
 
@@ -41,14 +41,15 @@ public class TelegramBotService {
      * If any update presents maps them into UserRequestDTO and adds them into queue.
      * Starts the next stage of processing the requests.
      */
+    @Scheduled(fixedDelay = 2000, initialDelay = 2000)
     public void getUpdates() {
         BotUpdatesDTO updates = bot.getUpdates(lastUpdateId + 1);
         ArrayList<Result> results = updates.getResults();
         if (!results.isEmpty()) {
             lastUpdateId = results.getLast().getUpdate_id();
-            ArrayList<UserRequestDTO> requests = new ArrayList<>();
+            ArrayList<UserRequest> requests = new ArrayList<>();
             for (Result r : results) {
-                UserRequestDTO requestDTO = mpr.map(r, UserRequestDTO.class);
+                UserRequest requestDTO = mpr.map(r, UserRequest.class);
                 mpr.map(r.getMessage(), requestDTO);
                 mpr.map(r.getMessage().getChat(), requestDTO);
                 requests.add(requestDTO);
@@ -65,7 +66,7 @@ public class TelegramBotService {
      */
     public void stageRequests() {
         while (!queue.isEmpty()) {
-            UserRequestDTO request = queue.poll();
+            UserRequest request = queue.poll();
             long chatId = request.getChatId();
             UserOfBot user = userRepo.findUser(chatId);
             String text = request.getText();
@@ -86,12 +87,13 @@ public class TelegramBotService {
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void createUser(UserRequestDTO request, UserOfBot user) {
+    public void createUser(UserRequest request, UserOfBot user) {
         long chatId = request.getChatId();
         if (user == null) {
             user = mpr.map(request, UserOfBot.class);
             user.setStage(UserStage.CREATED);
             userRepo.save(user);
+            log.info("A new user is added: {}", user.getFirstName());
             bot.sendMessage(chatId, """
                     Azərbaycan dili üçün /aze seçin.
                     Для русского языка выберите /rus.
@@ -108,7 +110,7 @@ public class TelegramBotService {
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void setUserLanguage(UserRequestDTO request, UserOfBot user) {
+    public void setUserLanguage(UserRequest request, UserOfBot user) {
         long chatId = request.getChatId();
         if (user == null) {
             bot.sendMessage(chatId, getLocalizedMessage("enterStartCommand", null));
@@ -136,8 +138,8 @@ public class TelegramBotService {
      * @return        - the localized message value is returned.
      */
     public String getLocalizedMessage(String message, UserOfBot user) {
-        Locale locale = user == null ? Locale.ENGLISH : user.getUserLocale();
-        locale = locale == null ? Locale.ENGLISH : locale;
+        Locale locale = (user == null) ? Locale.ENGLISH : user.getUserLocale();
+        locale = (locale == null) ? Locale.ENGLISH : locale;
         return messageSource.getMessage(message, null, locale);
     }
 
@@ -162,7 +164,7 @@ public class TelegramBotService {
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void processRequests(UserRequestDTO request, UserOfBot user) {
+    public void processRequests(UserRequest request, UserOfBot user) {
         UserStage stage = user == null ? null : user.getStage();
         switch (stage) {
             case CREATED, PROCESSED -> bot.sendMessage(user.getChatId(),
@@ -182,11 +184,12 @@ public class TelegramBotService {
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void jobTitleSetter(UserRequestDTO request, UserOfBot user) {
+    public void jobTitleSetter(UserRequest request, UserOfBot user) {
         user.setJobTitle(request.getText().toLowerCase());
         user.setStage(UserStage.ENTERING_SKILLS);
         user = userRepo.save(user);
         userRepo.save(user);
+        log.info("{} set job title: {}", user.getFirstName(), user.getJobTitle());
         bot.sendMessage(user.getChatId(), getLocalizedMessage("enterSkills", user));
     }
 
@@ -195,7 +198,7 @@ public class TelegramBotService {
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void skillSetSetter(UserRequestDTO request, UserOfBot user) {
+    public void skillSetSetter(UserRequest request, UserOfBot user) {
         String text = request.getText().toLowerCase();
         Set<String> skills = Set.of(text.split("\\s*,\\s*"));
         List<Skill> skillSet = findOrCreateSkills(skills);
@@ -203,6 +206,7 @@ public class TelegramBotService {
         user.setSkillSet(skillSet);
         user.setStage(UserStage.ENTERING_REMOTE);
         userRepo.save(user);
+        log.info("{} set skill set: {}", user.getFirstName(), skillSet);
 
         bot.sendMessage(user.getChatId(), getLocalizedMessage("enterRemote", user));
     }
@@ -214,10 +218,12 @@ public class TelegramBotService {
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void jobRemoteSetter(UserRequestDTO request, UserOfBot user) {
+    public void jobRemoteSetter(UserRequest request, UserOfBot user) {
         user.setOnlyRemote(request.getText().equals("/Y"));
         user.setStage(UserStage.ENTERING_LOCATION);
         userRepo.save(user);
+        log.info("{} set onlyRemote: {}", user.getFirstName(), user.isOnlyRemote());
+
         bot.sendMessage(user.getChatId(), getLocalizedMessage("enterLocation", user));
     }
 
@@ -226,11 +232,12 @@ public class TelegramBotService {
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void locationSetter(UserRequestDTO request, UserOfBot user) {
+    public void locationSetter(UserRequest request, UserOfBot user) {
         String location = request.getText().substring(0, 1).toUpperCase() + request.getText().substring(1).toLowerCase();
         user.setUserLocation(location);
         user.setStage(UserStage.CONFIRM_SEARCH);
         userRepo.save(user);
+        log.info("{} set user location: {}", user.getFirstName(), user.getUserLocation());
 
         StringBuilder skills = new StringBuilder();
         user.getSkillSet().forEach(s -> skills.append(s.toString().indent(6)));
@@ -244,11 +251,13 @@ public class TelegramBotService {
      * @param request - contains all useful data about the user.
      * @param user    - is the queried user from database provided by stageRequests() method. If user is new it will be null.
      */
-    public void confirmJobTitleAndSearch(UserRequestDTO request, UserOfBot user) {
+    public void confirmJobTitleAndSearch(UserRequest request, UserOfBot user) {
         String jobTitle = request.getText();
         if (jobTitle.equalsIgnoreCase(user.getJobTitle())) {
             user.setStage(UserStage.PROCESSED);
             userRepo.save(user);
+            log.info("{} confirmed job search", user.getFirstName());
+
             bot.sendMessage(request.getChatId(), getLocalizedMessage("sendDone", user));
         } else {
             bot.sendMessage(request.getChatId(), getLocalizedMessage("wrongTitle", user));
@@ -280,6 +289,7 @@ public class TelegramBotService {
      */
     public void deleteUser(long chatId, UserOfBot user) {
         if (user != null) {
+            user.setSkillSet(null);
             userRepo.delete(user);
         } else {
             bot.sendMessage(chatId, getLocalizedMessage("enterStartCommand", null));

@@ -1,7 +1,7 @@
 package com.ltc.telegrambotlinkedin.service;
 
 import com.ltc.telegrambotlinkedin.config.feign.JSearchClient;
-import com.ltc.telegrambotlinkedin.dto.jSearchDto.Job;
+import com.ltc.telegrambotlinkedin.dto.jSearchDTO.Job;
 import com.ltc.telegrambotlinkedin.entity.UserOfBot;
 import com.ltc.telegrambotlinkedin.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,12 +25,8 @@ public class JSearchService {
     private final JSearchClient jSearchClient;
     private final UserRepository userRepo;
 
-    public ArrayList<Job> getAllJobs(String query, Boolean isRemote) {
-        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "all", isRemote).getData();
-    }
-
-    public ArrayList<Job> getTodaysJobs(String query, Boolean isRemote) {
-        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, "today", isRemote).getData();
+    public ArrayList<Job> getJobs(String query,String datePosted, Boolean isRemote) {
+        return jSearchClient.getSearch(jSearchHost, jSearchKey, query, 1, 10, datePosted, isRemote).getData();
     }
 
     public Map<UserOfBot, List<Job>> findJobsForUsers(List<UserOfBot> processedUsers) {
@@ -40,15 +38,20 @@ public class JSearchService {
             List<Job> jobSearchResults = new ArrayList<>();
 
             if (user.getUpdateDate() == null) {
-                jobSearchResults = getAllJobs(query, remote);
+                jobSearchResults = getJobs(query, "all", remote);
                 user.setUpdateDate(new Date());
-            } else if (new Date().getTime() - user.getUpdateDate().getTime() > 86400){
-                jobSearchResults = getTodaysJobs(query, remote);
-                user.setUpdateDate(new Date());
-            }
+                log.info("Fetching all posts for {}. User last updated: {}", user.getFirstName(), user.getUpdateDate());
 
+            } else if ((Instant.now().toEpochMilli() - user.getUpdateDate().getTime()) > TimeUnit.DAYS.toMillis(1)){
+                jobSearchResults = getJobs(query,"today", remote);
+                user.setUpdateDate(new Date());
+                log.info("Fetching today's posts for {}. User last updated: {}", user.getFirstName(), user.getUpdateDate());
+            }
+            log.info("Found jobs for {}: {}", user.getFirstName(), jobSearchResults.size());
             user = userRepo.save(user);
-            result.put(user, jobSearchResults);
+            if (!jobSearchResults.isEmpty()) {
+                result.put(user, jobSearchResults);
+            }
         }
         return result;
     }
