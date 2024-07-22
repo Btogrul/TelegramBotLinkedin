@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class UserRequestDTO {
+public class UserRequest {
     @JsonProperty("date")
     private int date;
     @JsonProperty("text")

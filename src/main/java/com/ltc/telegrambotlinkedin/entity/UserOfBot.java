@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -42,6 +43,18 @@ public class UserOfBot {
     @Column(name = "update_date")
     private Date updateDate;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<Skill> skillSet;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserOfBot userOfBot)) return false;
+        return id == userOfBot.id && chatId == userOfBot.chatId && Objects.equals(firstName, userOfBot.firstName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, chatId, firstName);
+    }
 }
