@@ -23,7 +23,7 @@ import java.util.*;
 @RequiredArgsConstructor
 @Data
 @Service
-public class TelegramBotService {
+public class UserProcessorService {
 
     private final UserRepository userRepo;
     private final SkillRepository skillRepo;
