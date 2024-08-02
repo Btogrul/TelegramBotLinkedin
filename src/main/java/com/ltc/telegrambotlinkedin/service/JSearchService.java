@@ -40,14 +40,13 @@ public class JSearchService {
             if (user.getUpdateDate() == null) {
                 jobSearchResults = getJobs(query, "all", remote);
                 user.setUpdateDate(new Date());
-                log.info("Fetching all posts for {}. User last updated: {}", user.getFirstName(), user.getUpdateDate());
+                log.info("Fetched all posts for {}. Number of jobs: {}", user.getFirstName(), jobSearchResults.size());
 
-            } else if ((Instant.now().toEpochMilli() - user.getUpdateDate().getTime()) > TimeUnit.DAYS.toMillis(1)){
+            } else if ((Instant.now().toEpochMilli() - user.getUpdateDate().getTime()) >= TimeUnit.DAYS.toMillis(1)){
                 jobSearchResults = getJobs(query,"today", remote);
                 user.setUpdateDate(new Date());
-                log.info("Fetching today's posts for {}. User last updated: {}", user.getFirstName(), user.getUpdateDate());
+                log.info("Fetched today's posts for {}. Number of jobs: {}", user.getFirstName(), jobSearchResults.size());
             }
-            log.info("Found jobs for {}: {}", user.getFirstName(), jobSearchResults.size());
             user = userRepo.save(user);
             if (!jobSearchResults.isEmpty()) {
                 result.put(user, jobSearchResults);

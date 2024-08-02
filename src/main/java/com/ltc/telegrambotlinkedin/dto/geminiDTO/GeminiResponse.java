@@ -8,47 +8,47 @@ import java.util.List;
 public class GeminiResponse {
     @JsonProperty
     private List<Candidate> candidates;
-    @JsonProperty
-    private UsageMetadata usageMetadata;
-
-    @Data
-    static class UsageMetadata {
-        private int promptTokenCount;
-        private int candidatesTokenCount;
-        private int totalTokenCount;
-    }
+//    @JsonProperty
+//    private UsageMetadata usageMetadata;
+//
+//    @Data
+//    static class UsageMetadata {
+//        private int promptTokenCount;
+//        private int candidatesTokenCount;
+//        private int totalTokenCount;
+//    }
 
 
     static class Candidate{
         @JsonProperty
         private ResponseContent content;
-        @JsonProperty
-        private String finishReason;
-        @JsonProperty
-        private int index;
-        @JsonProperty
-        private List<SafetyRating> safetyRatings;
+//        @JsonProperty
+//        private String finishReason;
+//        @JsonProperty
+//        private int index;
+//        @JsonProperty
+//        private List<SafetyRating> safetyRatings;
 
 
         static class ResponseContent {
             @JsonProperty
             private List<ResponsePart> parts;
-            @JsonProperty
-            private String role;
+//            @JsonProperty
+//            private String role;
 
             public static class ResponsePart {
                 @JsonProperty
                 private String text;
             }
         }
-
-
-        static class SafetyRating {
-            @JsonProperty
-            private String category;
-            @JsonProperty
-            private String probability;
-        }
+//
+//
+//        static class SafetyRating {
+//            @JsonProperty
+//            private String category;
+//            @JsonProperty
+//            private String probability;
+//        }
     }
 
     public String getResponse () {
