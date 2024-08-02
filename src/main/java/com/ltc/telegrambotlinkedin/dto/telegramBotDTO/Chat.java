@@ -16,4 +16,3 @@ public class Chat{
     @JsonProperty("type")
     private String type;
 }
-
