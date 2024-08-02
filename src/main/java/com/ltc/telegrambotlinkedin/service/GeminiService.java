@@ -31,8 +31,8 @@ public class GeminiService {
                 var geminiRequest = buildGeminiRequest(user, jobs);
                 var gptResponse = geminiClient.getMessageFeign(apiKey, geminiRequest);
 
-                String[] results = gptResponse.getResponse().split("\\b(yes|no|YES|NO)\\b");
-                log.info("The results: {}", Arrays.toString(results));
+                String[] results = gptResponse.getResponse().split("\\W+");
+                log.info("The results for {}: {}", user.getFirstName(), Arrays.toString(results));
 
                 ArrayList<Job> suitableJobs = new ArrayList<>();
                 if (results.length == jobs.size()) {
@@ -44,7 +44,7 @@ public class GeminiService {
                 } else {
                     log.error("Gemini response error: {} != {}", results.length, jobs.size());
                 }
-                log.info("Suitable Jobs: {}", suitableJobs.size());
+                log.info("Suitable Jobs for {}: {}", user.getFirstName(), suitableJobs.size());
                 foundJobs.replace(user, suitableJobs);
             }
         }
@@ -52,9 +52,7 @@ public class GeminiService {
     }
 
     private GeminiRequest buildGeminiRequest(UserOfBot user, List<Job> jobs) {
-        log.info("The user {} and skill set: {}", user.getFirstName(), user.getSkillSet());
         String content = buildContent(user, jobs);
-        log.info("The Gemini query:\n {}", content.lines());
         return new GeminiRequest(content);
     }
 
@@ -68,7 +66,7 @@ public class GeminiService {
                 %s
                 Analyze the suitability of the following jobs:
                 %s
-                Answer only a comma delimited list of "yes" or "no" for each job. Yes means user's skill set is suitable for the job.
+                Answer only a comma delimited list of "yes" or "no" for each job. Yes means at least half of the user's skill set is suitable for the job.
                 Example: yes, yes, no, yes, no""".formatted(user.getSkillSet().toString(), jobDescList);
     }
 }

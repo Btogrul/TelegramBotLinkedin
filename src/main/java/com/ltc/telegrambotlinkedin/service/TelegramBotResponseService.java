@@ -24,7 +24,7 @@ public class TelegramBotResponseService {
     private final GeminiService geminiService;
     private final TelegramBotClient bot;
 
-    @Scheduled(fixedDelay = 3000, initialDelay = 3000)
+    @Scheduled(fixedDelay = 4000, initialDelay = 4000)
     public void sendMessages() {
         List<UserOfBot> processed = userRepo.findAllUsers();
 
@@ -33,13 +33,11 @@ public class TelegramBotResponseService {
             Map<UserOfBot, List<Job>> results = jSearchService.findJobsForUsers(processed);
 
             if (!results.isEmpty()) {
-                log.info("Users processed by jSearch: {}", processed.size());
                 results = geminiService.analyzeResults(results);
 
                 for (Map.Entry<UserOfBot, List<Job>> entry : results.entrySet()) {
                     long chatId = entry.getKey().getChatId();
                     List<Job> jobs = entry.getValue();
-                    log.info("Matching jobs for {}: {}", entry.getKey().getFirstName(), jobs.size());
 
                     for (Job job : jobs) {
                         String jobApplyLink = job.getJobApplyLink();

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "CareerCompanionBot", url = "https://api.telegram.org/bot${botToken}")
 public interface TelegramBotClient {
+
     @GetMapping("/getUpdates")
     BotUpdatesDTO getUpdates (@RequestParam(name = "offset") long offset);
 
