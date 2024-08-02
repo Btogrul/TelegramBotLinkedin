@@ -17,7 +17,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TelegramBotResponseService {
+public class UserResponseService {
 
     private final UserRepository userRepo;
     private final JSearchService jSearchService;
